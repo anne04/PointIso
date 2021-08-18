@@ -1,5 +1,8 @@
-# nohup python -u IsoGrouping_reportFeature_ev2r4.py recordpath scanpath filename resultpath gpu_index > output.log &
-# nohup python -u IsoGrouping_reportFeature_ev2r4.py recordpath scanpath filename resultpath gpu_index > output.log &
+# nohup python -u IsoGrouping_reportFeature_ev2r4.py recordpath scanpath modelpath filename resultpath gpu_index > output.log &
+'''nohup python -u IsoGrouping_reportFeature_ev2r4.py /data/anne/dilution_series_syn_pep/hash_record/ /data/anne/dilution_series_syn_pep/scanned_result/  
+/data/anne/pointIso/3D_model/  130124_dilA_1_01 /data/anne/pointIso/3D_result/ 0 > output.log & '''
+
+
 from __future__ import print_function, division
 import numpy as np
 import tensorflow as tf
@@ -17,6 +20,7 @@ import os
 from sklearn import metrics
 recordpath=
 scanpath=
+modelpath=
 filename=
 resultpath= 
 gpu_index=
