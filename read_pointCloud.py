@@ -1,5 +1,5 @@
-# python nohup -u read_pointCloud.py filepath topath filename > output.log &
-# python nohup -u read_pointCloud.py /data/anne/dilution_series_syn_pep/.ms1 /data/anne/dilution_series_syn_pep/ 130124_dilA_1_01 _ms1_record_mz5> output.log &
+# python nohup -u read_pointCloud.py [filepath] [topath] [filename] > output.log &
+# python nohup -u read_pointCloud.py /data/anne/dilution_series_syn_pep/ /data/anne/dilution_series_syn_pep/ 130124_dilA_1_01 > output.log &
 filepath=sys.argv[1]  output.log &
 from __future__ import division
 from __future__ import print_function
@@ -28,9 +28,9 @@ isotope_gap[8]=0.12500
 isotope_gap[9]=0.11111
     
    
-print(filepath+)
+print(filepath+filename)
 print("reading file to convert it to a hash table")
-f = open(filepath, 'r') 
+f = open(filepath+filename+'.ms1', 'r') 
 line=f.readline()
 RT_mz_I_dict=defaultdict(list)
 i=0
@@ -89,7 +89,7 @@ for i in range(0, len(RT_list)):
     sorted_mz_list.append(mz_keys)
 
 print("conversion done. writing records. ")
-f=open(topath, 'wb')
+f=open(topath+filename+'_ms1_record_mz5', 'wb')
 pickle.dump([RT_index,sorted_mz_list,maxI], f, protocol=2) #all mz_done
 f.close()
 print("writing done.")
