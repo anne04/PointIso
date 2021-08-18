@@ -1,5 +1,5 @@
 # nohup python -u read_pointcloud_4DtimsTOF.py [filepath] [filename] [sample_name] [topath] > output.log &
-'''nohup python -u read_pointcloud_4DtimsTOF.py [filepath] '/data/anne/timsTOF/' 20180924_50ngHeLa_1.0.25.1_Hystar5.0SR1_S2-A1_1_2042.mzML  
+'''nohup python -u read_pointcloud_4DtimsTOF.py '/data/anne/timsTOF/' 20180924_50ngHeLa_1.0.25.1_Hystar5.0SR1_S2-A1_1_2042.mzML  
 A1_1_2042 '/data/anne/timsTOF/hash_records/' > output.log & '''
 
 from pyteomics import mzml
@@ -12,15 +12,12 @@ rt_resolution=2
 k0_resolution=4
 mz_resolution=5
 
-filepath=
-filename=
-sample_name=
-topath=
+filepath=sys.argv[1]
+filename=sys.argv[2]
+sample_name=sys.argv[3]
+topath=sys.argv[4]
 
-path=filepath 
-dataname=sample_name 
-data_index=0
-print(dataname[data_index])
+
 ##########################################################
 reader=mzml.MzML(filepath+filename) 
 max_I=0
@@ -85,12 +82,12 @@ for part in range (1, 13):
         break
 print('all done %d'%len(reader))
 
-f=open(topath+'pointCloud_'+sample_name+'_maxI', 'wb') #'/media/anne/PXD010012/denoised mzml/'
+f=open(topath+'pointCloud_'+sample_name+'_maxI', 'wb') 
 pickle.dump(max_I, f, protocol=3)
 f.close()
 
 
-f=open(topath+'pointCloud_'+sample_name+'_maxI_k0', 'wb') #'/media/anne/PXD010012/denoised mzml/'
+f=open(topath+'pointCloud_'+sample_name+'_maxI_k0', 'wb') 
 pickle.dump(max_I_k0, f, protocol=3)
 f.close()
 
