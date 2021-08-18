@@ -1,7 +1,7 @@
 # PointIso
 
 Order of running the files:
-
+ 
 2. $ nohup python -u read_pointCloud.py [filepath] [topath]
    Here filepath is the location of .ms1 file and topath is the location where the hash table having the triplets (RT, m/z, I) of datapoints is saved. 
    A sample command should look like below (here the outputs are printed in a output.log file):
