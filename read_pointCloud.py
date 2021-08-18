@@ -1,5 +1,5 @@
 # python nohup -u read_pointCloud.py [filepath] [topath] [filename] > output.log &
-# python nohup -u read_pointCloud.py /data/anne/dilution_series_syn_pep/ /data/anne/dilution_series_syn_pep/ 130124_dilA_1_01 > output.log &
+# python nohup -u read_pointCloud.py /data/anne/dilution_series_syn_pep/ /data/anne/dilution_series_syn_pep/hash_record/ 130124_dilA_1_01 > output.log &
 filepath=sys.argv[1]  output.log &
 from __future__ import division
 from __future__ import print_function
