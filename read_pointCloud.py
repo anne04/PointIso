@@ -1,5 +1,6 @@
-# read_pointCloud.py filepath topath
-# read_pointCloud.py /data/anne/dilution_series_syn_pep/130124_dilA_1_01.ms1 /data/anne/dilution_series_syn_pep/130124_dilA_1_01_ms1_record_mz5
+# python nohup -u read_pointCloud.py filepath topath filename > output.log &
+# python nohup -u read_pointCloud.py /data/anne/dilution_series_syn_pep/.ms1 /data/anne/dilution_series_syn_pep/ 130124_dilA_1_01 _ms1_record_mz5> output.log &
+filepath=sys.argv[1]  output.log &
 from __future__ import division
 from __future__ import print_function
 import sys
@@ -10,6 +11,8 @@ from collections import defaultdict
 
 filepath=sys.argv[1] 
 topath=sys.argv[2] 
+filename=sys.argv[3]
+
 delim=','
 mz_resolution=5
 isotope_gap=np.zeros((10))
@@ -25,7 +28,7 @@ isotope_gap[8]=0.12500
 isotope_gap[9]=0.11111
     
    
-print(filepath)
+print(filepath+)
 print("reading file to convert it to a hash table")
 f = open(filepath, 'r') 
 line=f.readline()
