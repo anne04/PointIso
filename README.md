@@ -1,4 +1,4 @@
-The *.raw files are downloaded from ProteomXchange database and ProteoWizerd 3.0.1817 is used to convert the raw file into .ms1 format. After that we have to run the uploaded python scripts as explained below:
+The *.raw files are downloaded from ProteomeXchange database and ProteoWizerd 3.0.1817 is used to convert the raw file into .ms1 format. After that we have to run the uploaded python scripts as explained below:
 
 Syntax for running the python scripts from linux (Ubuntu) terminal is provided below in the order of execution: 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
