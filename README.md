@@ -3,6 +3,7 @@ The *.raw files are downloaded from ProteomeXchange database and ProteoWizerd 3.
 Syntax for running the python scripts from linux (Ubuntu) terminal is provided below in the order of execution: 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 1. read_pointCloud.py: This script read the *.ms1 file from location 'filepath' having name 'sample_name' and convert the LC-MS map in that file to a hash table holding the datapoint triplets (RT, m/z, I). The hash table is saved at location 'topath'. The syntax and example of related command to run in terminal is provided below: 
+
 $nohup python -u read_pointCloud.py [filepath] [topath] [sample_name] > output.log &
 Example:
 $ nohup python -u read_pointCloud.py /data/anne/dilution_series_syn_pep/ /data/anne/dilution_series_syn_pep/hash_record/ 130124_dilA_1_01 > output.log &
