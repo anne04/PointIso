@@ -1,5 +1,5 @@
-# nohup python -u  k0_separation_timsTOF_parallel.py [recordpath] [sample_name] [gpu_index] [segment] [scanpath] > output.log &
-''' nohup python -u k0_separation_timsTOF_parallel.py '/data/anne/timsTOF/hash_records/' 'A1_1_2042' 0 1 /data/anne/timsTOF/scanned_result/ > output.log & '''
+# nohup python -u  k0_separation_timsTOF_parallel.py [recordpath] [sample_name] [segment] [scanpath] > output.log &
+''' nohup python -u k0_separation_timsTOF_parallel.py '/data/anne/timsTOF/hash_records/' 'A1_1_2042' 1 /data/anne/timsTOF/scanned_result/ > output.log & '''
 from __future__ import division
 from __future__ import print_function
 from time import time
