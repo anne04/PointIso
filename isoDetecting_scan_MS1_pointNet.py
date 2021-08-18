@@ -433,7 +433,7 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
                             
                         datapoint=RT_index[round(RT_list[RT_idx], 2)][mz_value]    
                         intensity=round(((datapoint[0]-0)/(maxI-0))*255, 2) # scale it to the grey value
-                        mz_row=round(mz_value-mz_start, mz_resolution)  #(()/(mz_end-mz_start))*mz_difference, mz_resolution) # scale it to 0 to 1.99 
+                        mz_row=round(mz_value-mz_start, mz_resolution)   
                         if point_index<5000:
                             batch_ms1[count, flat_index, point_index, 0]=mz_row
                             batch_ms1[count, flat_index, point_index, 1]= rt_row
@@ -518,10 +518,10 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
                 pred_start[:]=0
                 not_exist=1
                 RT_keys=sorted(output_list[j].keys())
-                for count_rt_index in range (0,  len(RT_keys)): #range (RT_window, total_RT):
+                for count_rt_index in range (0,  len(RT_keys)): 
                     i=RT_keys[count_rt_index]
-                    RT_poz=round(RT_list[rt_search_index+i], 2) # i1=int((RT_poz1-min_RT)/RT_unit)     i2=int((RT_poz2-min_RT)/RT_unit)  # step = int((mz_poz-min_mz)/mz_unit-5)
-                    z=int(output_list[j][i]) #int(output_list[batch_index,i,j])
+                    RT_poz=round(RT_list[rt_search_index+i], 2) 
+                    z=int(output_list[j][i]) 
 
                     if z!=0:
                         # add (m/z,RT) to the dict
