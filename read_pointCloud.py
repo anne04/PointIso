@@ -1,5 +1,5 @@
 # read_pointCloud.py filepath topath
-# read_pointCloud.py /data/fzohora/dilution_series_syn_pep/130124_dilA_1_01.ms1 /data/fzohora/dilution_series_syn_pep/130124_dilA_1_01_ms1_record_mz5
+# read_pointCloud.py /data/anne/dilution_series_syn_pep/130124_dilA_1_01.ms1 /data/anne/dilution_series_syn_pep/130124_dilA_1_01_ms1_record_mz5
 from __future__ import division
 from __future__ import print_function
 import sys
