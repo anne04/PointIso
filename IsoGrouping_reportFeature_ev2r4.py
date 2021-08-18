@@ -1,29 +1,23 @@
 # nohup python -u IsoGrouping_reportFeature_ev2r4.py recordpath scanpath modelpath filename resultpath gpu_index > output.log &
 '''nohup python -u IsoGrouping_reportFeature_ev2r4.py /data/anne/dilution_series_syn_pep/hash_record/ /data/anne/dilution_series_syn_pep/scanned_result/  
 /data/anne/pointIso/3D_model/  130124_dilA_1_01 /data/anne/pointIso/3D_result/ 0 > output.log & '''
-
-
 from __future__ import print_function, division
 import numpy as np
 import tensorflow as tf
-#import matplotlib.pyplot as plt
 import pickle
 import math
 import copy
-#from time import time
 import bisect
-#import sys
-#import scipy.misc
-#import csv
 from collections import defaultdict
 import os
 from sklearn import metrics
-recordpath=
-scanpath=
-modelpath=
-filename=
-resultpath= 
-gpu_index=
+
+recordpath=sys.argv[1]
+scanpath=sys.argv[2]
+modelpath=sys.argv[3]
+filename=sys.argv[4]
+resultpath=sys.argv[5]
+gpu_index=sys.argv[6]
 
 gpu=gpu_index
 os.environ["CUDA_VISIBLE_DEVICES"]=gpu
