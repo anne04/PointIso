@@ -1,5 +1,5 @@
 # nohup python -u isoDetecting_scan_4DtimsTOF_pointNet.py [recordpath] [sample_name] [modelpath] [gpu_index] [segment] [scanpath] > output.log &
-''' nohup python -u isoDetecting_scan_4DtimsTOF_pointNet.py '/data/anne/timsTOF/hash_records/' 'A1_1_2042' /data/anne/pointIso/3D_model/ 0 1 
+''' nohup python -u isoDetecting_scan_4DtimsTOF_pointNet.py '/data/anne/timsTOF/hash_records/' 'A1_1_2042' /data/anne/pointIso/4D_model/ 0 1 
 /data/anne/timsTOF/scanned_result/ > output.log & '''
 
 from __future__ import division
