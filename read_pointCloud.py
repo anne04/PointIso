@@ -1,24 +1,15 @@
+# read_pointCloud.py filepath topath
+# read_pointCloud.py /data/fzohora/dilution_series_syn_pep/130124_dilA_1_01.ms1 /data/fzohora/dilution_series_syn_pep/130124_dilA_1_01_ms1_record_mz5
 from __future__ import division
 from __future__ import print_function
-
+import sys
 import numpy as np
 import pickle
 from collections import defaultdict
 
 
-path='/data/fzohora/dilution_series_syn_pep/'  #'/media/anne/Study/bsi/dilution_series_syn_peptide/feature_list/' #'/data/fzohora/water_raw_ms1/'
-dataname=['130124_dilA_1_01','130124_dilA_1_02','130124_dilA_1_03','130124_dilA_1_04', 
-'130124_dilA_2_01','130124_dilA_2_02','130124_dilA_2_03','130124_dilA_2_04','130124_dilA_2_05','130124_dilA_2_06','130124_dilA_2_07',
-'130124_dilA_3_01','130124_dilA_3_02','130124_dilA_3_03','130124_dilA_3_04','130124_dilA_3_05','130124_dilA_3_06','130124_dilA_3_07',
-'130124_dilA_4_01','130124_dilA_4_02','130124_dilA_4_03','130124_dilA_4_04','130124_dilA_4_05','130124_dilA_4_06','130124_dilA_4_07',
-'130124_dilA_5_01','130124_dilA_5_02','130124_dilA_5_03','130124_dilA_5_04',
-'130124_dilA_6_01','130124_dilA_6_02','130124_dilA_6_03','130124_dilA_6_04',
-'130124_dilA_7_01','130124_dilA_7_02','130124_dilA_7_03','130124_dilA_7_04',
-'130124_dilA_8_01','130124_dilA_8_02','130124_dilA_8_03','130124_dilA_8_04',
-'130124_dilA_9_01','130124_dilA_9_02','130124_dilA_9_03','130124_dilA_9_04',
-'130124_dilA_10_01','130124_dilA_10_02', '130124_dilA_10_03', '130124_dilA_10_04', 
-'130124_dilA_11_01', '130124_dilA_11_02', '130124_dilA_11_03', '130124_dilA_11_04', 
-'130124_dilA_12_01', '130124_dilA_12_02', '130124_dilA_12_03', '130124_dilA_12_04'] 
+filepath=sys.argv[1] 
+topath=sys.argv[2] 
 delim=','
 mz_resolution=5
 isotope_gap=np.zeros((10))
@@ -33,69 +24,70 @@ isotope_gap[7]=0.14286
 isotope_gap[8]=0.12500
 isotope_gap[9]=0.11111
     
-    
-for data_index in range (0, len(dataname)): #(0, 1, 2, 3,  25, 26, 27, 28,  29, 30, 31, 32,  33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44): # 19, 20, 21
-    print(dataname[data_index])
-    f = open(path+'feature_list/raw_ms1/'+dataname[data_index]+'.ms1', 'r') #open('/data/fzohora/water_raw_ms1/'+filename_ms1, 'r')
-    line=f.readline()
-    RT_mz_I_dict=defaultdict(list)
-    i=0
-    j=0
-    maxI=0
-    max_mz=0
-
-    while line!='':
-        if line.find('RTime')>=0:
-            temp=line.split('\t')
-            temp=temp[len(temp)-1]
-            temp=temp.split('\n')
-            temp=temp[len(temp)-2]
-            RT_value=round(float(temp), 2)       #?
-            line=f.readline()  
-            line=f.readline()    
-            line=f.readline()  
-            line=f.readline() 
-            j=0
+   
+print(filepath)
+print("reading file to convert it to a hash table")
+f = open(filepath, 'r') 
+line=f.readline()
+RT_mz_I_dict=defaultdict(list)
+i=0
+j=0
+maxI=0
+max_mz=0
+print("conversion starts ...")
+while line!='':
+    if line.find('RTime')>=0:
+        temp=line.split('\t')
+        temp=temp[len(temp)-1]
+        temp=temp.split('\n')
+        temp=temp[len(temp)-2]
+        RT_value=round(float(temp), 2)       #?
+        line=f.readline()  
+        line=f.readline()    
+        line=f.readline()  
+        line=f.readline() 
+        j=0
 #            print('found RT')
-            while line!='' and line.find('S')<0:
-                temp=line.split(' ')
-                #print(temp[0])
-                mz_value=round(float(temp[0]), mz_resolution) #?
-                temp=temp[1].split('\n')
-                temp=temp[len(temp)-2]
-                intensity_value=round(float(temp), 4)
+        while line!='' and line.find('S')<0:
+            temp=line.split(' ')
+            #print(temp[0])
+            mz_value=round(float(temp[0]), mz_resolution) #?
+            temp=temp[1].split('\n')
+            temp=temp[len(temp)-2]
+            intensity_value=round(float(temp), 4)
 #                if max_mz<mz_value:
 #                   max_mz=mz_value                 
-                
-                if maxI<intensity_value:
-                   maxI=intensity_value 
-                
-                RT_mz_I_dict[RT_value].append((mz_value, intensity_value))
-                
-                line=f.readline()  
-                j=j+1
-            i=i+1
-        if line!='':   
-            line=f.readline()    
-    f.close()
-#    
-    
-    RT_list = np.sort(list(RT_mz_I_dict.keys()))
-    sorted_mz_list=[]
-    RT_index=defaultdict(dict)
-    for i in range(0, len(RT_list)):
-        mz_dict=defaultdict(list)
-        for j in range (0, len(RT_mz_I_dict[RT_list[i]])):
-            mz_dict[round(RT_mz_I_dict[RT_list[i]][j][0], mz_resolution)].append(round(RT_mz_I_dict[RT_list[i]][j][1], 2))
-        
-        mz_keys=sorted(mz_dict.keys())
-        for j in range (0, len(mz_keys)):
-            RT_index[round(RT_list[i], 2)][round(mz_keys[j], mz_resolution)]=[max(mz_dict[mz_keys[j]]), j]
-        
-        sorted_mz_list.append(mz_keys)
+
+            if maxI<intensity_value:
+               maxI=intensity_value 
+
+            RT_mz_I_dict[RT_value].append((mz_value, intensity_value))
+
+            line=f.readline()  
+            j=j+1
+        i=i+1
+    if line!='':   
+        line=f.readline()    
+f.close()
 
 
-    f=open(path+'feature_list/pointCloud_'+dataname[data_index]+'_ms1_record_mz5', 'wb')
-    pickle.dump([RT_index,sorted_mz_list,  maxI], f, protocol=2) #all mz_done
-    f.close()
+RT_list = np.sort(list(RT_mz_I_dict.keys()))
+sorted_mz_list=[]
+RT_index=defaultdict(dict)
+for i in range(0, len(RT_list)):
+    mz_dict=defaultdict(list)
+    for j in range (0, len(RT_mz_I_dict[RT_list[i]])):
+        mz_dict[round(RT_mz_I_dict[RT_list[i]][j][0], mz_resolution)].append(round(RT_mz_I_dict[RT_list[i]][j][1], 2))
+
+    mz_keys=sorted(mz_dict.keys())
+    for j in range (0, len(mz_keys)):
+        RT_index[round(RT_list[i], 2)][round(mz_keys[j], mz_resolution)]=[max(mz_dict[mz_keys[j]]), j]
+
+    sorted_mz_list.append(mz_keys)
+
+print("conversion done. writing records. ")
+f=open(topath, 'wb')
+pickle.dump([RT_index,sorted_mz_list,maxI], f, protocol=2) #all mz_done
+f.close()
+print("writing done.")
 
