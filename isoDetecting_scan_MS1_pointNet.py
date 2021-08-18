@@ -1,5 +1,5 @@
-# nohup python -u isoDetecting_scan_MS1_pointNet.py [recordpath] [sample_name] [modelpath] [gpu_index] [segment] [start_mz] [topath] > output.log &
-''' nohup python -u isoDetecting_scan_MS1_pointNet.py /data/anne/dilution_series_syn_pep/hash_record/ 130124_dilA_1_01 /data/anne/pointIso/3D_model/ 0 0 400 
+# nohup python -u isoDetecting_scan_MS1_pointNet.py [recordpath] [sample_name] [modelpath] [gpu_index] [start_mz] [topath] > output.log &
+''' nohup python -u isoDetecting_scan_MS1_pointNet.py /data/anne/dilution_series_syn_pep/hash_record/ 130124_dilA_1_01 /data/anne/pointIso/3D_model/ 0 400 
 /data/anne/dilution_series_syn_pep/scanned_result/ > output.log & '''
 
 from __future__ import division
@@ -19,9 +19,8 @@ recordpath=sys.argv[1]
 sample_name=sys.argv[2]
 modelpath=sys.argv[3]
 gpu_index=sys.argv[4]
-segment=sys.argv[5]
-start_mz=sys.argv[6]
-topath=sys.argv[7]
+start_mz=sys.argv[5]
+topath=sys.argv[6]
 
 
 os.environ["CUDA_VISIBLE_DEVICES"]=gpu_index
@@ -323,257 +322,258 @@ saver.restore(sess, modelpath+log_no+'_best_model_1.ckpt')
 print('~ Model built ~ ')
 ####################################################################
 
-for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
-    print(dataname[test_index])
-    print(gc.collect())
-    print('trying to load ms1 record')
-    data_index=test_index
-    f=open(recordpath+'pointCloud_'+sample_name+'_ms1_record_mz5', 'rb')
-    RT_index, sorted_mz_list, maxI=pickle.load(f)
-    f.close()   
-    print('done!')
-    
-    RT_list=sorted(RT_mz_I_dict.keys())
-    RT_index_array=dict()
-    for i in range (0, len(RT_list)):
-        RT_index_array[round(RT_list[i], 2)]=i
-        
-    ###########################
-    #scan ms1_block and record the outputs in list_dict[z]: hash table based on m/z
-    #for each m/z
-    mz_resolution=5
-    RT_list = np.sort(list(RT_mz_I_dict.keys()))
-    max_RT=RT_list[len(RT_list)-1]
-    min_RT=10    
 
-    max_mz=0
-    min_mz=1000
-    for i in range (0, len(sorted_mz_list)):
-        mz_I_list=sorted_mz_list[i]
-        mz=mz_I_list[len(mz_I_list)-1]
-        if mz>max_mz:
-            max_mz=mz
-        mz=mz_I_list[0]
-        if mz<min_mz:
-            min_mz=mz
-            
+print(dataname[test_index])
+print(gc.collect())
+print('trying to load ms1 record')
+data_index=test_index
+f=open(recordpath+'pointCloud_'+sample_name+'_ms1_record_mz5', 'rb')
+RT_mz_I_dict, sorted_mz_list, maxI=pickle.load(f)
+f.close()   
+print('done!')
+RT_index=RT_mz_I_dict
 
-    rt_search_index=0
-    while(RT_list[rt_search_index]<=min_RT):
-        if RT_list[rt_search_index]==min_RT:
-            break
-        rt_search_index=rt_search_index+1 
+RT_list=sorted(RT_mz_I_dict.keys())
+RT_index_array=dict()
+for i in range (0, len(RT_list)):
+    RT_index_array[round(RT_list[i], 2)]=i
 
-    total_RT=len(RT_list)-rt_search_index
-    
-    #############################
-    
-    mz_used_before=np.zeros((total_class))    
-    pred_RT=np.zeros((total_class))
-    pred_start=np.zeros((total_class))
-    list_dict=[]
-    for i in range (0, total_class):
-        list_dict.append(dict())
-    batch_size=1
-    
-    current_mz=float(start_mz)  #min_mz
+###########################
+#scan ms1_block and record the outputs in list_dict[z]: hash table based on m/z
+#for each m/z
+mz_resolution=5
+RT_list = np.sort(list(RT_mz_I_dict.keys()))
+max_RT=RT_list[len(RT_list)-1]
+min_RT=10    
 
-    current_RT=min_RT
-    max_mz=current_mz+200.00000
-    total_time=time()
-    while current_mz<max_mz:
-        start_time=time()
-        print('##### mz:%g #######'%current_mz)
-        output_list=defaultdict(dict)
-        real_RT_index=rt_search_index
-        real_img_row=RT_window #check
-        while real_img_row<= total_RT-RT_window:
-            RT_index_start=real_RT_index
+max_mz=0
+min_mz=1000
+for i in range (0, len(sorted_mz_list)):
+    mz_I_list=sorted_mz_list[i]
+    mz=mz_I_list[len(mz_I_list)-1]
+    if mz>max_mz:
+        max_mz=mz
+    mz=mz_I_list[0]
+    if mz<min_mz:
+        min_mz=mz
+
+
+rt_search_index=0
+while(RT_list[rt_search_index]<=min_RT):
+    if RT_list[rt_search_index]==min_RT:
+        break
+    rt_search_index=rt_search_index+1 
+
+total_RT=len(RT_list)-rt_search_index
+
+#############################
+
+mz_used_before=np.zeros((total_class))    
+pred_RT=np.zeros((total_class))
+pred_start=np.zeros((total_class))
+list_dict=[]
+for i in range (0, total_class):
+    list_dict.append(dict())
+batch_size=1
+
+current_mz=float(start_mz)  #min_mz
+
+current_RT=min_RT
+max_mz=current_mz+200.00000
+total_time=time()
+while current_mz<max_mz:
+    start_time=time()
+    print('##### mz:%g #######'%current_mz)
+    output_list=defaultdict(dict)
+    real_RT_index=rt_search_index
+    real_img_row=RT_window #check
+    while real_img_row<= total_RT-RT_window:
+        RT_index_start=real_RT_index
 #            print('RT for output:%d, mz for output: %g'%(real_img_row, current_mz))
-            batch_ms1=np.zeros((batch_size,9, datapoints, 3))
-            batch_points=np.zeros((batch_size, 9))
-            
-            count=0
-            #####
-            #prepare it
-            RT_inc=15
-            
-            for row_idx in range (0, 3):
-                mz_start=round(current_mz-mz_window*mz_unit, mz_resolution)
-                RT_index_end=min(RT_index_start+RT_window-1, len(RT_list)-1) #inc
-                rt_idx_s=RT_index_start
-                rt_idx_e=RT_index_end
-                if row_idx==0:
-                    rt_idx_s=rt_idx_s+7
-                elif row_idx==2:
-                    rt_idx_e=rt_idx_e-7                
-                for col_idx in range (0, 3):
+        batch_ms1=np.zeros((batch_size,9, datapoints, 3))
+        batch_points=np.zeros((batch_size, 9))
+
+        count=0
+        #####
+        #prepare it
+        RT_inc=15
+
+        for row_idx in range (0, 3):
+            mz_start=round(current_mz-mz_window*mz_unit, mz_resolution)
+            RT_index_end=min(RT_index_start+RT_window-1, len(RT_list)-1) #inc
+            rt_idx_s=RT_index_start
+            rt_idx_e=RT_index_end
+            if row_idx==0:
+                rt_idx_s=rt_idx_s+7
+            elif row_idx==2:
+                rt_idx_e=rt_idx_e-7                
+            for col_idx in range (0, 3):
 #                    print('mz_start %g'%(mz_start))
-                    flat_index=row_idx*3+col_idx
-                    point_index=0
-                    mz_end=round(mz_start+2.0-mz_unit, mz_resolution) #inc, we don't allow overlap, like 700 to 701.99 --> 200 pixels
-                    if col_idx==0:
-                       mz_start=round(mz_start+1.0, mz_resolution)
-                    elif col_idx==2:
-                       mz_end=round(mz_end-1.0, mz_resolution)
-                    rt_row=0
-                    break_flag=-1
-                    for RT_idx in range (rt_idx_s, rt_idx_e+1):
-                        if RT_idx<0 or RT_idx>(len(RT_list)-1):
-                            rt_row=rt_row+1
-                            continue
-                        
-                        mz_value=mz_start
-                        
-                        find_mz_idx_start= bisect.bisect_left(sorted_mz_list[RT_idx], mz_value)
-                        if len(sorted_mz_list[RT_idx])==find_mz_idx_start or round(sorted_mz_list[RT_idx][find_mz_idx_start], mz_resolution)>mz_end:
-                            rt_row=rt_row+1
-                            continue
-                        mz_value=round(sorted_mz_list[RT_idx][find_mz_idx_start] , mz_resolution) 
-                            
+                flat_index=row_idx*3+col_idx
+                point_index=0
+                mz_end=round(mz_start+2.0-mz_unit, mz_resolution) #inc, we don't allow overlap, like 700 to 701.99 --> 200 pixels
+                if col_idx==0:
+                   mz_start=round(mz_start+1.0, mz_resolution)
+                elif col_idx==2:
+                   mz_end=round(mz_end-1.0, mz_resolution)
+                rt_row=0
+                break_flag=-1
+                for RT_idx in range (rt_idx_s, rt_idx_e+1):
+                    if RT_idx<0 or RT_idx>(len(RT_list)-1):
+                        rt_row=rt_row+1
+                        continue
+
+                    mz_value=mz_start
+
+                    find_mz_idx_start= bisect.bisect_left(sorted_mz_list[RT_idx], mz_value)
+                    if len(sorted_mz_list[RT_idx])==find_mz_idx_start or round(sorted_mz_list[RT_idx][find_mz_idx_start], mz_resolution)>mz_end:
+                        rt_row=rt_row+1
+                        continue
+                    mz_value=round(sorted_mz_list[RT_idx][find_mz_idx_start] , mz_resolution) 
+
+                    datapoint=RT_index[round(RT_list[RT_idx], 2)][mz_value]    
+                    intensity=round(((datapoint[0]-0)/(maxI-0))*255, 2) # scale it to the grey value
+                    mz_row=round(mz_value-mz_start, mz_resolution)   
+                    if point_index<5000:
+                        batch_ms1[count, flat_index, point_index, 0]=mz_row
+                        batch_ms1[count, flat_index, point_index, 1]= rt_row
+                        batch_ms1[count, flat_index, point_index, 2]=intensity
+                        point_index=point_index+1
+                    else:
+                        break
+
+                    next_mz_idx=int(datapoint[1])+1         
+
+                    if len(sorted_mz_list[RT_idx])>next_mz_idx:
+                            mz_value= sorted_mz_list[RT_idx][next_mz_idx]
+                    else:
+                        rt_row=rt_row+1
+                        continue
+
+                    while mz_value<=mz_end:
                         datapoint=RT_index[round(RT_list[RT_idx], 2)][mz_value]    
                         intensity=round(((datapoint[0]-0)/(maxI-0))*255, 2) # scale it to the grey value
-                        mz_row=round(mz_value-mz_start, mz_resolution)   
+                        mz_row=round(mz_value-mz_start, mz_resolution) # 0 to 1.99999
                         if point_index<5000:
                             batch_ms1[count, flat_index, point_index, 0]=mz_row
                             batch_ms1[count, flat_index, point_index, 1]= rt_row
                             batch_ms1[count, flat_index, point_index, 2]=intensity
                             point_index=point_index+1
+
                         else:
+                            break_flag=1
                             break
-                        
-                        next_mz_idx=int(datapoint[1])+1         
- 
+
+                        next_mz_idx=int(datapoint[1])+1
                         if len(sorted_mz_list[RT_idx])>next_mz_idx:
-                                mz_value= sorted_mz_list[RT_idx][next_mz_idx]
+                            mz_value= sorted_mz_list[RT_idx][next_mz_idx]
                         else:
-                            rt_row=rt_row+1
-                            continue
-                            
-                        while mz_value<=mz_end:
-                            datapoint=RT_index[round(RT_list[RT_idx], 2)][mz_value]    
-                            intensity=round(((datapoint[0]-0)/(maxI-0))*255, 2) # scale it to the grey value
-                            mz_row=round(mz_value-mz_start, mz_resolution) # 0 to 1.99999
-                            if point_index<5000:
-                                batch_ms1[count, flat_index, point_index, 0]=mz_row
-                                batch_ms1[count, flat_index, point_index, 1]= rt_row
-                                batch_ms1[count, flat_index, point_index, 2]=intensity
-                                point_index=point_index+1
-                              
-                            else:
-                                break_flag=1
-                                break
-                            
-                            next_mz_idx=int(datapoint[1])+1
-                            if len(sorted_mz_list[RT_idx])>next_mz_idx:
-                                mz_value= sorted_mz_list[RT_idx][next_mz_idx]
-                            else:
-                                break
-                        if break_flag==1:
                             break
-                        rt_row=rt_row+1
-                        
-                    mz_start=round(mz_end+mz_unit, mz_resolution) # go to next right window
-                    if col_idx==1 and row_idx==1: # mid block
-                        if RT_idx<rt_idx_e: # 0 to 14 = 15. if stopped at 12, then next scan starts at 13, instead of 15. 12-0+1=13. otherwise, 14-0+1=15. 
-                            RT_inc=RT_idx-rt_idx_s+1
-                    batch_points[count, flat_index]=point_index
-                        
-                RT_index_start=min(RT_index_start+min(15, RT_inc), len(RT_list)-1) # go to next up window
-            #####
-        # one 3x3 seq is formed
+                    if break_flag==1:
+                        break
+                    rt_row=rt_row+1
+
+                mz_start=round(mz_end+mz_unit, mz_resolution) # go to next right window
+                if col_idx==1 and row_idx==1: # mid block
+                    if RT_idx<rt_idx_e: # 0 to 14 = 15. if stopped at 12, then next scan starts at 13, instead of 15. 12-0+1=13. otherwise, 14-0+1=15. 
+                        RT_inc=RT_idx-rt_idx_s+1
+                batch_points[count, flat_index]=point_index
+
+            RT_index_start=min(RT_index_start+min(15, RT_inc), len(RT_list)-1) # go to next up window
+        #####
+    # one 3x3 seq is formed
 #            print('block is formed')
-            if int(batch_points[count, 4])!=0 and np.max(batch_ms1[count, 4, :, 2])>0:                
-                batchX = batch_ms1 #[:,row_idx,:,:]                             
-                _prediction = sess.run(
-                    prediction,
-                    feed_dict={
-                        batchX_placeholder:batchX,
-                        keep_probability:1.0, 
-                        learn_rate:set_lr_rate,
-                        is_train:False
-                    })                                        
-                
-                #one batch is done
-                count=0
-                
-                for point_idx in range (0, int(batch_points[count, 4])):
-                    mz_index=int(round(batch_ms1[count, 4, point_idx, 0]/mz_unit, mz_resolution)) # 0 to 199999
-                    rt_index=int(batch_ms1[count, 4, point_idx, 1])            
-                    output_list[mz_index][real_img_row+rt_index]=_prediction[count][point_idx]
+        if int(batch_points[count, 4])!=0 and np.max(batch_ms1[count, 4, :, 2])>0:                
+            batchX = batch_ms1 #[:,row_idx,:,:]                             
+            _prediction = sess.run(
+                prediction,
+                feed_dict={
+                    batchX_placeholder:batchX,
+                    keep_probability:1.0, 
+                    learn_rate:set_lr_rate,
+                    is_train:False
+                })                                        
+
+            #one batch is done
+            count=0
+
+            for point_idx in range (0, int(batch_points[count, 4])):
+                mz_index=int(round(batch_ms1[count, 4, point_idx, 0]/mz_unit, mz_resolution)) # 0 to 199999
+                rt_index=int(batch_ms1[count, 4, point_idx, 1])            
+                output_list[mz_index][real_img_row+rt_index]=_prediction[count][point_idx]
 #                    output_list[count, real_img_row+rt_index, mz_index]=_prediction[count][point_idx]
-                
-            real_img_row=real_img_row+min(RT_window, RT_inc)
-            real_RT_index=real_RT_index+min(RT_window, RT_inc)
-        
-        
-        for batch_index in range (0, batch_size):
-            mz_keys=sorted(output_list.keys())
-            for j in mz_keys: #range (0, int(mz_window)): ## <---
-                mz_poz=round(current_mz+j*mz_unit, mz_resolution)
+
+        real_img_row=real_img_row+min(RT_window, RT_inc)
+        real_RT_index=real_RT_index+min(RT_window, RT_inc)
+
+
+    for batch_index in range (0, batch_size):
+        mz_keys=sorted(output_list.keys())
+        for j in mz_keys: #range (0, int(mz_window)): ## <---
+            mz_poz=round(current_mz+j*mz_unit, mz_resolution)
 #                if mz_poz==707.36: 
 #                    break                
-                mz_used_before[:]=0
-                pred_RT[:]=0
-                pred_start[:]=0
-                not_exist=1
-                RT_keys=sorted(output_list[j].keys())
-                for count_rt_index in range (0,  len(RT_keys)): 
-                    i=RT_keys[count_rt_index]
-                    RT_poz=round(RT_list[rt_search_index+i], 2) 
-                    z=int(output_list[j][i]) 
+            mz_used_before[:]=0
+            pred_RT[:]=0
+            pred_start[:]=0
+            not_exist=1
+            RT_keys=sorted(output_list[j].keys())
+            for count_rt_index in range (0,  len(RT_keys)): 
+                i=RT_keys[count_rt_index]
+                RT_poz=round(RT_list[rt_search_index+i], 2) 
+                z=int(output_list[j][i]) 
 
-                    if z!=0:
-                        # add (m/z,RT) to the dict
-                        if mz_used_before[z]==1:  #list_dict[p_ion[i]].has_key(mz_poz):
-                            # append the new number to the existing array at this slot
-                #                if RT_poz not in list_dict[p_ion[i]][mz_poz]:
-                            if RT_index_array[RT_poz]-RT_index_array[pred_RT[z]]==1: #continuation of same isotope
-                                pred_RT[z]=RT_poz
-                            elif pred_start[z]==pred_RT[z]: # the RT span of this isotope is only one scan then remove it 
-                                
-                                list_dict[z][mz_poz].append(-1) # insert a separating marker
-                                list_dict[z][mz_poz].append(RT_poz) # insert the starting RT of new isotope
-                                pred_start[z]=RT_poz #keep track of starting RT
-                                pred_RT[z]=RT_poz
-                                
-                            else: #if the RT span of current isotope is => 2 scan then keep it
-                                list_dict[z][mz_poz].append(round(pred_RT[z], 2))
-                                list_dict[z][mz_poz].append(-1) # insert a separating marker --> CHECK
-                                list_dict[z][mz_poz].append(RT_poz) # insert the starting RT of new isotope
-                                pred_start[z]=RT_poz #keep track of starting RT
-                                pred_RT[z]=RT_poz
-                        else:
-                            # create a new array in this slot
-                            list_dict[z][mz_poz] = deque()#[RT_poz]
-                            list_dict[z][mz_poz].append(RT_poz)
-                            mz_used_before[z]=1
-                            pred_start[z]=RT_poz
+                if z!=0:
+                    # add (m/z,RT) to the dict
+                    if mz_used_before[z]==1:  #list_dict[p_ion[i]].has_key(mz_poz):
+                        # append the new number to the existing array at this slot
+            #                if RT_poz not in list_dict[p_ion[i]][mz_poz]:
+                        if RT_index_array[RT_poz]-RT_index_array[pred_RT[z]]==1: #continuation of same isotope
                             pred_RT[z]=RT_poz
-                            
-                    
-                for i in range (1, total_class):
-                    if mz_used_before[i]==1: 
-                        if pred_start[i]==pred_RT[i]: # the RT span of this isotope is only .01 minute (one step) then remove it 
-                            list_dict[i][mz_poz].pop()
-                        else: #if the RT span of current isotope is => 2 step (.02 minute) then keep it
-                            list_dict[i][mz_poz].append(round(pred_RT[i], 2))
-                            list_dict[i][mz_poz].append(-1)
-                            
-                # all rt done for one mz
-        #one stripe done
-        current_mz=round(current_mz+(mz_window)*mz_unit, mz_resolution) ## <------
-    # followings are tabbed back
-        time_elapsed=time()-start_time 
-        print(time_elapsed)
-    
-    print('total time taken %g'%(time()-total_time))     
-    print('writing')
-    f=open(topath+sample_name+'_IsoDetecting_scanned_result_'+segment, 'wb') #v3r2
-    pickle.dump([list_dict,float(segment)], f, protocol=2) #all mz_done
-    f.close()
-    print('done')
- 
+                        elif pred_start[z]==pred_RT[z]: # the RT span of this isotope is only one scan then remove it 
+
+                            list_dict[z][mz_poz].append(-1) # insert a separating marker
+                            list_dict[z][mz_poz].append(RT_poz) # insert the starting RT of new isotope
+                            pred_start[z]=RT_poz #keep track of starting RT
+                            pred_RT[z]=RT_poz
+
+                        else: #if the RT span of current isotope is => 2 scan then keep it
+                            list_dict[z][mz_poz].append(round(pred_RT[z], 2))
+                            list_dict[z][mz_poz].append(-1) # insert a separating marker --> CHECK
+                            list_dict[z][mz_poz].append(RT_poz) # insert the starting RT of new isotope
+                            pred_start[z]=RT_poz #keep track of starting RT
+                            pred_RT[z]=RT_poz
+                    else:
+                        # create a new array in this slot
+                        list_dict[z][mz_poz] = deque()#[RT_poz]
+                        list_dict[z][mz_poz].append(RT_poz)
+                        mz_used_before[z]=1
+                        pred_start[z]=RT_poz
+                        pred_RT[z]=RT_poz
+
+
+            for i in range (1, total_class):
+                if mz_used_before[i]==1: 
+                    if pred_start[i]==pred_RT[i]: # the RT span of this isotope is only .01 minute (one step) then remove it 
+                        list_dict[i][mz_poz].pop()
+                    else: #if the RT span of current isotope is => 2 step (.02 minute) then keep it
+                        list_dict[i][mz_poz].append(round(pred_RT[i], 2))
+                        list_dict[i][mz_poz].append(-1)
+
+            # all rt done for one mz
+    #one stripe done
+    current_mz=round(current_mz+(mz_window)*mz_unit, mz_resolution) ## <------
+# followings are tabbed back
+    time_elapsed=time()-start_time 
+    print(time_elapsed)
+
+print('total time taken %g'%(time()-total_time))     
+print('writing')
+f=open(topath+sample_name+'_IsoDetecting_scanned_result_'+start_mz, 'wb') #v3r2
+pickle.dump([list_dict,float(start_mz)], f, protocol=2) #all mz_done
+f.close()
+print('done')
+
 
 
 
