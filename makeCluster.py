@@ -1,19 +1,11 @@
-#scp -r fzohora@ming-gpu-1.cs.uwaterloo.ca:/data/fzohora/dilution_series_syn_pep/feature_list/130124_dilA_11_01_ms1_record  /home/anne/Desktop/bsi/update/130124_dilA_11_01_ms1_record
-#scp -r fzohora@ming-gpu-1.cs.uwaterloo.ca:/data/fzohora/dilution_series_syn_pep/feature_list/130124_dilA_11_01_combineIsotopes_info  /home/anne/Desktop/bsi/update/130124_dilA_11_01_combineIsotopes_info
+# nohup python -u makeCluster.py recordpath filename scanpath  
 from __future__ import division
 from __future__ import print_function
-#import tensorflow as tf
-#import math
-#from time import time
 import pickle
 import numpy as np
 from collections import deque
 from collections import defaultdict
 import copy
-#import scipy.misc
-#import scipy.stats as stats
-#import sys
-#from sklearn import metrics
 import bisect
 import gc
 
@@ -66,18 +58,11 @@ for test_index in range (9,10):  #
     ####################################################################
     print('scanning test ms: '+dataname[test_index])
     print('trying to load ms1 record')
-    f=open(datapath+'feature_list/'+'pointCloud_'+dataname[test_index]+'_ms1_record_mz5', 'rb')
+    f=open(recordpath+filename+'_ms1_record_mz5', 'rb')
     RT_mz_I_dict, sorted_mz_list, maxI=pickle.load(f)
     f.close()   
     print('done!')
     gc.collect()
-    #############################
-    f=open(datapath+'feature_list/pointCloud_'+dataname[test_index]+'_RT_index_new_mz5', 'rb')
-    RT_index=pickle.load(f)
-    f.close()  
-    
-    print('data restore done')
-
     ###########################
     #scan ms1_block and record the cnn outputs in list_dict[z]: hash table based on m/z
     #for each m/z
@@ -91,7 +76,8 @@ for test_index in range (9,10):  #
         RT_index_array[round(RT_list[i], 2)]=i
         sorted_mz_list.append(sorted(RT_mz_I_dict[RT_list[i]].keys()))  
 
-        
+    RT_index=RT_mz_I_dict
+    
     max_mz=0
     min_mz=1000
     for i in range (0, len(sorted_mz_list)):
@@ -112,28 +98,20 @@ for test_index in range (9,10):  #
     total_mz=int(round((max_mz-min_mz+mz_unit)/mz_unit, mz_resolution)) 
     total_RT=len(RT_list)-rt_search_index
 
-
-#    f=open(datapath+'LC_MS/'+dataname[test_index]+'_pointNet_seg_list_dict_mz5_v3r2_withFP_'+'400', 'rb') 
-    f=open(datapath+'LC_MS/'+dataname[test_index]+'_pointNet_seg_list_dict_mz5_v6r1_'+'400', 'rb')
+    
+    f=open(scanpath+sample_name+'_IsoDetecting_scanned_result_'+'400', 'rb')
     list_dict, starting_mz_value=pickle.load(f)
     f.close()
     for mz_dict in (600,  800,  1000,  1200,  1400, 1600,1800):
-#        f=open(datapath+'LC_MS/'+dataname[test_index]+'_pointNet_seg_list_dict_mz5_v3r2_withFP_'+str(mz_dict), 'rb') #v3r2 
-        f=open(datapath+'LC_MS/'+dataname[test_index]+'_pointNet_seg_list_dict_mz5_v6r1_'+str(mz_dict), 'rb') #v3r2
+        f=open(scanpath+sample_name+'_IsoDetecting_scanned_result_'+str(mz_dict), 'rb') #v3r2
         list_dict_next, starting_mz_value=pickle.load(f)
         f.close()        
         for z in range (1, 10):
             list_dict[z].update(list_dict_next[z])
 
-#    f=open(datapath+'LC_MS/'+dataname[test_index]+'_pointNet_seg_list_dict_test', 'rb') 
-#    list_dict, stripe_index = pickle.load(f)
-#    f.close()
+
     gc.collect()
-#    list_dict_hold=copy.deepcopy(list_dict)
     isotope_cluster=defaultdict(list)
-#    list_dict=copy.deepcopy(list_dict_hold)
-    #save_list_dict=copy.deepcopy(list_dict[2]) 
-    #list_dict[2]=copy.deepcopy(save_list_dict)
     for z in range (1, 10):
         new_list_dict=dict()
         new_mz_resolution=3
@@ -246,7 +224,7 @@ for test_index in range (9,10):  #
                     # check if there is just one RT index missing
                     rt_next=list_RT_range.popleft()
                     j=j+1
-                    if RT_index_array[rt_next]-RT_index_array[rt_pred]<=5:  #A # those which are ==1 are considered consecutive and merged during formation of list_dict #changed from 1
+                    if RT_index_array[rt_next]-RT_index_array[rt_pred]<=5:  #A # those which are <=5 are considered consecutive and merged
                         if seq_running==0:
                             list_dict[z][mz].append(rt_pred)
                             rt_pred=rt_next
@@ -324,14 +302,14 @@ for test_index in range (9,10):  #
                     ###################
                     y=y+intensity
                 
-                # B, changed from 2. 1 = two consecutives are kept, 2 = three consecutives are kept. less than that -- discard 
-                if RT_index_array[rt_end]-RT_index_array[rt_st]>=1 and y>0: # and np.amax(ms1[RT_index_array[rt_st]-rt_search_index: RT_index_array[rt_end]-rt_search_index+1, int((mz-min_mz)/mz_unit)])>0: #2=to remove those detections which occurs only two consecutive scans
+                # B
+                if RT_index_array[rt_end]-RT_index_array[rt_st]>=1 and y>0:  #keep those detections which occurs at least 2 consecutive scans and not blank
                     list_dict[z][mz].append([rt_st, rt_end, -1])
                 else:
                     count=count+1 #just for debug to see how many traces were false detections like that
                 j=j+3
         
-#        list_dict_hold_2=copy.deepcopy(list_dict)
+
         merge_isotopes=dict() #based on id 
         list_keys=np.sort(list(list_dict[z].keys()))
         
@@ -689,22 +667,6 @@ for test_index in range (9,10):  #
         isotope_table=copy.deepcopy(isotope_table_temp)
         isotope_table_temp=0
 
-    #    #AUC
-    #    print('AUC calculation of isotopes')
-    #    isotope_mz_list=sorted(isotope_table.keys())
-    #    for mz in isotope_mz_list:
-    #        iso_list=isotope_table[mz]
-    #        for i in range (0, len(iso_list)):
-    #            mz_point=int(round((mz-min_mz)/mz_unit))
-    #            rt_s=RT_index_array[iso_list[i][1]]-rt_search_index 
-    #            rt_e=RT_index_array[iso_list[i][2]]-rt_search_index 
-    #            y=np.array((np.copy(ms1[rt_s:rt_e+1, mz_point])/255)*maxI)
-    #            x=np.array(RT_list[RT_index_array[iso_list[i][1]]:RT_index_array[iso_list[i][2]]+1])
-    #            AUC_iso=metrics.auc(x, y)
-    #            isotope_table[mz][i][3]=AUC_iso
-
-
-
         # form cluster of isotopes to feed into the isotope grouping module
         DEBUG=0
         mz_list=sorted(isotope_table.keys())
@@ -841,9 +803,7 @@ for test_index in range (9,10):  #
 
         
     print(max_num_iso) 
-#    f=open(datapath+'LC_MS/'+dataname[test_index]+'_pointNet_centroid_v2r1_clusters_mz3_v5', 'wb') 
-#    f=open(datapath+'LC_MS/'+dataname[test_index]+'_pointNet_v3r2_withFP_clusters_mz3_v5', 'wb') 
-    f=open(datapath+'LC_MS/'+dataname[test_index]+'_pointNet_v6r1_clusters_mz3_v5', 'wb')
+    f=open(scanpath+filename+'_pointIso_clusters', 'wb')
     pickle.dump([isotope_cluster, max_num_iso, total_cluster], f, protocol=2)
     f.close()
     print('cluster write done')
