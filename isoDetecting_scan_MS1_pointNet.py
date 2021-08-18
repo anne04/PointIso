@@ -1,5 +1,5 @@
-# nohup python scan_ms1_block_dilutionSeries.py  > 
-#IMP FINDING: MZ=0 POINTS CAN'T BE IGNORED #600-18
+# nohup python -u isoDetecting_scan_MS1_pointNet.py [recordpath] [modelpath] [start_mz] [topath] > output.log &
+# nohup python -u isoDetecting_scan_MS1_pointNet.py /data/fzohora/dilution_series_syn_pep/ [start_mz] [topath] > output.log &
 from __future__ import division
 from __future__ import print_function
 import tensorflow as tf
@@ -291,10 +291,8 @@ with tf.device('/device:GPU:'+ sys.argv[4]): #):  #
     p_mlp_1 = tf.nn.relu(conv2d(tf.reshape(concat_local_global_surround[:, :, :], [-1, datapoints, concat_local_global_surround.shape[2].value, 1]), P_W_conv1) + P_b_conv1) # finally giving the output
     p_mlp_2 = tf.nn.relu(conv2d(tf.nn.dropout(p_mlp_1, keep_probability), P_W_conv2) + P_b_conv2)
     p_mlp_3 = tf.nn.relu(conv2d(tf.nn.dropout(p_mlp_2, keep_probability), P_W_conv3) + P_b_conv3)
-#    p_mlp_4 = tf.nn.relu(conv2d(tf.nn.dropout(p_mlp_3, keep_probability), P_W_conv4) + P_b_conv4)
 
     nw_out =  conv2d(tf.nn.dropout(p_mlp_3, keep_probability), nw_W_out) +  nw_b_out
-#    nw_out =  conv2d(p_mlp_3, nw_W_out) +  nw_b_out
     nw_out=tf.reshape(nw_out, [-1, datapoints, num_class])
     prediction = tf.argmax(tf.nn.softmax(nw_out), 2) # it should be [n x num_class]
     #    prediction_score = np.max(tf.nn.softmax(nw_out), 2)
@@ -308,25 +306,18 @@ config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 saver = tf.train.Saver()
-#saver.restore(sess, modelpath+log_no+'_epoch89.ckpt') #65
 saver.restore(sess, modelpath+log_no+'_best_model_1.ckpt')
-#saver.save(sess, modelpath+log_no+'_best_model_1.ckpt')
-
 #saver.restore(sess, modelpath+log_no+'_best_model_loss.ckpt')
 print('~ Model built ~ ')
 ####################################################################
-#discard_list=[23,28,31,34,40,44,48,52,56]
-#for test_index in (23,28,31,34,40,44,48,52,56):
-#for test_index in range (44,45):
+
 for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
-#    if test_index in discard_list:
-#        continue
     print(dataname[test_index])
     print(gc.collect())
     print('trying to load ms1 record')
     data_index=test_index
     f=open(datapath+'feature_list/'+'pointCloud_'+dataname[data_index]+'_ms1_record_mz5', 'rb')
-    RT_mz_I_dict, sorted_mz_list, maxI=pickle.load(f)
+    RT_index, sorted_mz_list, maxI=pickle.load(f)
     f.close()   
     print('done!')
     
@@ -335,41 +326,14 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
     for i in range (0, len(RT_list)):
         RT_index_array[round(RT_list[i], 2)]=i
         
-    f=open(datapath+'feature_list/pointCloud_'+dataname[data_index]+'_RT_index_new_mz5', 'rb')
-    RT_index=pickle.load(f)
-    f.close()  
-
     ###########################
-    #scan ms1_block and record the cnn outputs in list_dict[z]: hash table based on m/z
+    #scan ms1_block and record the outputs in list_dict[z]: hash table based on m/z
     #for each m/z
     mz_resolution=5
     RT_list = np.sort(list(RT_mz_I_dict.keys()))
     max_RT=RT_list[len(RT_list)-1]
     min_RT=10    
 
-#    sorted_mz_list=[]
-#    RT_index=dict()
-#    for i in range(0, len(RT_list)):
-#        RT_index[round(RT_list[i], 2)]=i
-#        sorted_mz_list.append(sorted(RT_mz_I_dict[RT_list[i]]))   
-#        
-#    mz_exist=[]
-#    for i in range (0, len(sorted_mz_list)):
-#        temp_mz_list=[]
-#        temp_mz_list.append(sorted_mz_list[i][0][0])
-#        count=0
-#        for j in range (1, len(sorted_mz_list[i])):
-#            if temp_mz_list[count]==sorted_mz_list[i][j][0]:
-#                continue
-#            else:
-#                temp_mz_list.append(sorted_mz_list[i][j][0])
-#                count=count+1
-#
-#        sorted_mz_list[i]=temp_mz_list
-#        mz_exist.append(dict())
-#        for j in range (0, len(temp_mz_list)):
-#            mz_exist[i][temp_mz_list[j]]=1
-#        
     max_mz=0
     min_mz=1000
     for i in range (0, len(sorted_mz_list)):
@@ -388,9 +352,6 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
             break
         rt_search_index=rt_search_index+1 
 
-
-
-    #total_mz=int(round((max_mz-min_mz+mz_unit)/mz_unit, mz_resolution)) 
     total_RT=len(RT_list)-rt_search_index
     
     #############################
@@ -404,8 +365,7 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
     batch_size=1
     
     current_mz=float(sys.argv[3])  #min_mz
-#    if min_mz<current_mz:
-#        current_mz=min_mz
+
     current_RT=min_RT
     max_mz=current_mz+200.00000
     total_time=time()
@@ -413,7 +373,6 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
         start_time=time()
         print('##### mz:%g #######'%current_mz)
         output_list=defaultdict(dict)
-#        output_list=np.zeros((batch_size, total_RT, mz_window)) #
         real_RT_index=rt_search_index
         real_img_row=RT_window #check
         while real_img_row<= total_RT-RT_window:
@@ -512,14 +471,7 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
             #####
         # one 3x3 seq is formed
 #            print('block is formed')
-            if int(batch_points[count, 4])!=0 and np.max(batch_ms1[count, 4, :, 2])>0:
-#                for flat_index in (0, 1, 2, 3, 5, 6, 7, 8):
-#                    
-#                    for point_index in range (0, 4):
-#                        batch_ms1[count, flat_index, point_index, 0]=0 #mz_row
-#                        batch_ms1[count, flat_index, point_index, 1]= point_index #rt_row
-#                        batch_ms1[count, flat_index, point_index, 2]=0 #intensity
-                
+            if int(batch_points[count, 4])!=0 and np.max(batch_ms1[count, 4, :, 2])>0:                
                 batchX = batch_ms1 #[:,row_idx,:,:]                             
                 _prediction = sess.run(
                     prediction,
@@ -557,14 +509,8 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
                 for count_rt_index in range (0,  len(RT_keys)): #range (RT_window, total_RT):
                     i=RT_keys[count_rt_index]
                     RT_poz=round(RT_list[rt_search_index+i], 2) # i1=int((RT_poz1-min_RT)/RT_unit)     i2=int((RT_poz2-min_RT)/RT_unit)  # step = int((mz_poz-min_mz)/mz_unit-5)
-                    #boundary value check + smoothing out?
-#                    if i<total_RT-1 and RT_keys[count_rt_index-1]+1==RT_keys[count_rt_index] and RT_keys[count_rt_index]+1==RT_keys[count_rt_index+1]:
-#                        if output_list[j][RT_keys[count_rt_index-1]]==output_list[j][RT_keys[count_rt_index+1]] and output_list[j][RT_keys[count_rt_index]]!=output_list[j][RT_keys[count_rt_index-1]]:
-#                            output_list[j][RT_keys[count_rt_index]]=output_list[j][RT_keys[count_rt_index-1]]
                     z=int(output_list[j][i]) #int(output_list[batch_index,i,j])
-#                    if mz_poz==707.36 and RT_poz==64.94:
-#                        print('FOUND %d'%z)
-#                        break
+
                     if z!=0:
                         # add (m/z,RT) to the dict
                         if mz_used_before[z]==1:  #list_dict[p_ion[i]].has_key(mz_poz):
