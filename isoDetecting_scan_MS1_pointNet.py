@@ -1,21 +1,30 @@
-# nohup python -u isoDetecting_scan_MS1_pointNet.py [recordpath] [modelpath] [start_mz] [topath] > output.log &
-# nohup python -u isoDetecting_scan_MS1_pointNet.py /data/fzohora/dilution_series_syn_pep/ [start_mz] [topath] > output.log &
+# nohup python -u isoDetecting_scan_MS1_pointNet.py [recordpath] [sample_name] [modelpath] [gpu_index] [segment] [start_mz] [topath] > output.log &
+''' nohup python -u isoDetecting_scan_MS1_pointNet.py /data/anne/dilution_series_syn_pep/hash_record/ 130124_dilA_1_01 /data/anne/pointIso/3D_model/ 0 0 400 
+/data/anne/dilution_series_syn_pep/scanned_result/ > output.log & '''
+
 from __future__ import division
 from __future__ import print_function
 import tensorflow as tf
-#import math
 from time import time
 import pickle
 import numpy as np
 from collections import deque
 from collections import defaultdict
-#import copy
-#import scipy.misc
 import sys
 import bisect
 import gc
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]=sys.argv[4]
+
+recordpath=sys.argv[1]
+sample_name=sys.argv[2]
+modelpath=sys.argv[3]
+gpu_index=sys.argv[4]
+segment=sys.argv[5]
+start_mz=sys.argv[6]
+topath=sys.argv[7]
+
+
+os.environ["CUDA_VISIBLE_DEVICES"]=gpu_index
 isotope_gap=np.zeros((10))
 isotope_gap[0]=0.00001
 isotope_gap[1]=1.00000
@@ -48,9 +57,12 @@ dataname=['130124_dilA_1_01','130124_dilA_1_02','130124_dilA_1_03','130124_dilA_
 '130124_dilA_12_01', '130124_dilA_12_02', '130124_dilA_12_03', '130124_dilA_12_04'] 
 
 
+
+
+
 activation_func=2
 set_lr_rate= 0.001 #float(sys.argv[1]) #
-log_no='deepIso_pointNet_isoDetect_mz5_v6_'+'lrp001r1' #'v3r2' 'deepIso_pointNet_isoDetect_mz5_v5a_'+'lrp001r1' #'deepIso_pointNet_isoDetect_mz5_v5_'+'lrp001r1' # 'deepIso_pointNet_isoDetect_mz5_v4_'+'lrp001r1' #  'deepIso_pointNet_isoDetect_extendedWeight_nb2_'
+log_no='deepIso_pointNet_isoDetect_mz5_v6_'+'lrp001r1'
 momentum_value=0.9
 reg_weight=0.001
 total_frames_var=20
@@ -85,7 +97,7 @@ def bias_variable_Tnet(shape, variable_name):
 
 #################################################################
 
-with tf.device('/device:GPU:'+ sys.argv[4]): #):  # 
+with tf.device('/device:GPU:'+ gpu_index):
     is_train = tf.placeholder(tf.bool, name="is_train")
     batchX_placeholder = tf.placeholder(tf.float32, [None, 9, datapoints, 3]) #image block to consider for one run of training by back propagation
     sample_weight = tf.placeholder(tf.float32, [None, datapoints]) 
@@ -316,7 +328,7 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
     print(gc.collect())
     print('trying to load ms1 record')
     data_index=test_index
-    f=open(datapath+'feature_list/'+'pointCloud_'+dataname[data_index]+'_ms1_record_mz5', 'rb')
+    f=open(recordpath+'pointCloud_'+sample_name+'_ms1_record_mz5', 'rb')
     RT_index, sorted_mz_list, maxI=pickle.load(f)
     f.close()   
     print('done!')
@@ -364,7 +376,7 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
         list_dict.append(dict())
     batch_size=1
     
-    current_mz=float(sys.argv[3])  #min_mz
+    current_mz=float(start_mz)  #min_mz
 
     current_RT=min_RT
     max_mz=current_mz+200.00000
@@ -557,8 +569,8 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
     
     print('total time taken %g'%(time()-total_time))     
     print('writing')
-    f=open(datapath+'LC_MS/'+dataname[data_index]+'_pointNet_seg_list_dict_mz5_v6r1_'+sys.argv[3], 'wb') #v3r2
-    pickle.dump([list_dict,float(sys.argv[3])], f, protocol=2) #all mz_done
+    f=open(topath+sample_name+'_IsoDetecting_scanned_result_'+segment, 'wb') #v3r2
+    pickle.dump([list_dict,float(segment)], f, protocol=2) #all mz_done
     f.close()
     print('done')
  
