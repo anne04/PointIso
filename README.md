@@ -23,8 +23,9 @@ Example:
 $ nohup python -u IsoGrouping_reportFeature_ev2r4.py /data/anne/dilution_series_syn_pep/hash_record/ /data/anne/dilution_series_syn_pep/scanned_result/  /data/anne/pointIso/3D_model/  130124_dilA_1_01 /data/anne/pointIso/3D_result/ 0 > output.log & 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Syntax for 4D TimsTOF data: For 4D data, we convert the raw file to *.mzML using ProteoWizerd. DO NOT select the 'merge scan' option during conversion.
+Syntax for 4D TimsTOF data: 
 -----------------------------------
+For 4D data, we convert the raw file to *.mzML using ProteoWizerd. DO NOT select the 'merge scan' option during conversion. Then following script is run.  
 1. $ nohup python -u read_pointcloud_4DtimsTOF.py [filepath] [filename] [sample_name] [topath] > output.log &  
 Example:  
 $ nohup python -u read_pointcloud_4DtimsTOF.py '/data/anne/timsTOF/' 20180924_50ngHeLa_1.0.25.1_Hystar5.0SR1_S2-A1_1_2042.mzML A1_1_2042 '/data/anne/timsTOF/hash_records/' > output.log & 
