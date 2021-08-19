@@ -23,6 +23,36 @@ Example:
 $ nohup python -u IsoGrouping_reportFeature_ev2r4.py /data/anne/dilution_series_syn_pep/hash_record/ /data/anne/dilution_series_syn_pep/scanned_result/  /data/anne/pointIso/3D_model/  130124_dilA_1_01 /data/anne/pointIso/3D_result/ 0 > output.log & 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Syntax for 4D TimsTOF data:
+Syntax for 4D TimsTOF data: For 4D data, we convert the raw file to *.mzML using ProteoWizerd. DO NOT select the 'merge scan' option during conversion.
 -----------------------------------
+1. $ nohup python -u read_pointcloud_4DtimsTOF.py [filepath] [filename] [sample_name] [topath] > output.log &  
+Example:  
+$ nohup python -u read_pointcloud_4DtimsTOF.py '/data/anne/timsTOF/' 20180924_50ngHeLa_1.0.25.1_Hystar5.0SR1_S2-A1_1_2042.mzML A1_1_2042 '/data/anne/timsTOF/hash_records/' > output.log & 
+---------------------------------
+2. $nohup python -u k0_dict_write.py [recordpath] [sample_name] > output.log &  
+Example:  
+$ nohup python -u k0_dict_write.py '/data/anne/timsTOF/hash_records/' 'A1_1_2042' > output.log &
+---------------------------------
+3. isoDetecting_scan_4DtimsTOF_pointNet.py script is run for 1 to 12 segments in parallel.  
+$ nohup python -u isoDetecting_scan_4DtimsTOF_pointNet.py [recordpath] [sample_name] [modelpath] [gpu_index] [segment] [scanpath] > output.log &  
+Example:  
+$ nohup python -u isoDetecting_scan_4DtimsTOF_pointNet.py '/data/anne/timsTOF/hash_records/' 'A1_1_2042' /data/anne/pointIso/4D_model/ 0 1 /data/anne/timsTOF/scanned_result/ > output.log &
+-----------------
+4. $ nohup python -u makeCluster.py [recordpath] [sample_name] [scanpath] > output.log &  
+Example:  
+$ nohup python -u makeCluster.py '/data/anne/timsTOF/hash_records/' 'A1_1_2042' '/data/anne/timsTOF/scanned_result/' > output.log &  
+------------------
+5. $ nohup python -u  IsoGrouping_reportFeature_4DtimsTOF.py [recordpath] [sample_name] [modelpath] [gpu_index] [scanpath] > output.log &  
+Example:  
+$ nohup python -u IsoGrouping_reportFeature_4DtimsTOF.py '/data/anne/timsTOF/hash_records/' 'A1_1_2042' /data/anne/pointIso/4D_model/ 0 /data/anne/timsTOF/scanned_result/ > output.log & 
+-----------------------
+6. k0_separation_timsTOF_parallel.py script is run for 1 to 12 segments in parallel.  
+$ nohup python -u  k0_separation_timsTOF_parallel.py [recordpath] [sample_name] [segment] [scanpath] > output.log &  
+Example:  
+$ nohup python -u k0_separation_timsTOF_parallel.py '/data/anne/timsTOF/hash_records/' 'A1_1_2042' 1 /data/anne/timsTOF/scanned_result/ > output.log & 
+--------------
+7. $ nohup python -u  make_feature_table_4DtimsTOF.py [scanpath] [sample_name] [resultpath] > output.log &  
+Example:  
+$ nohup python -u make_feature_table_4DtimsTOF.py '/data/anne/timsTOF/scanned_result/' 'A1_1_2042' '/data/anne/timsTOF/4D_result/' > output.log &  
+--------------
 
