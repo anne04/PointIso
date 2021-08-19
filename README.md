@@ -21,4 +21,8 @@ $nohup python -u makeCluster.py /data/anne/dilution_series_syn_pep/hash_record/ 
 $nohup python -u IsoGrouping_reportFeature_ev2r4.py [recordpath] [scanpath] [modelpath] [filename] [resultpath] [gpu_index] > output.log &  
 Example:  
 $ nohup python -u IsoGrouping_reportFeature_ev2r4.py /data/anne/dilution_series_syn_pep/hash_record/ /data/anne/dilution_series_syn_pep/scanned_result/  /data/anne/pointIso/3D_model/  130124_dilA_1_01 /data/anne/pointIso/3D_result/ 0 > output.log & 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Syntax for 4D TimsTOF data:
+-----------------------------------
+
