@@ -1,3 +1,5 @@
+This research project is the implementation of deep neural network based model **PointIso** for peptide feature detection from 3D and 4D LC-MS map. This paper is published in Scietific Reports, 2021: https://www.nature.com/articles/s41598-021-97669-7. For any further query, please contact me at: fzohora@uwaterloo.ca
+
 The *.raw files are downloaded from ProteomeXchange database and ProteoWizerd 3.0.1817 is used to convert the raw file into .ms1 format. Trained models can be found in the zipped folders. Please unzip those and keep at your convenient directory. Also download all the python scripts in a directory. Open Linux (Ubuntu) terminal and change to the directory where you saved the python scripts. After that you have to run the python scripts as explained below:
 
 Syntax for running the python scripts from linux (Ubuntu) terminal is provided below in the order of execution: 
@@ -56,4 +58,6 @@ $ nohup python -u k0_separation_timsTOF_parallel.py '/data/anne/timsTOF/hash_rec
 Example:  
 $ nohup python -u make_feature_table_4DtimsTOF.py '/data/anne/timsTOF/scanned_result/' 'A1_1_2042' '/data/anne/timsTOF/4D_result/' > output.log &  
 --------------
+
+### *** Please cite the paper if you are using this project *** 
 
