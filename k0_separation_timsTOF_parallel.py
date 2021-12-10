@@ -147,7 +147,7 @@ for mz in mz_list:
     ftr_list=feature_table[mz]
     for ftr in ftr_list:
         # if both points are greater than min point + starting is less than  max point0
-        if (ftr[0][1][1] >= min(min_RT) and ftr[0][1][1] <= max(max_RT)) or (ftr[0][1][2] >= min(min_RT) and  ftr[0][1][2] <= max(max_RT)):
+        if (ftr[0][1][1] >= min(min_RT) and ftr[0][1][1] <= max(max_RT)) and (ftr[0][1][2] >= min(min_RT) and  ftr[0][1][2] <= max(max_RT)):
             long_mz=ftr[0][1][5]
             isotope_cluster[round(long_mz, mz_resolution)].append(ftr)
             total_feature=total_feature+1
