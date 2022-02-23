@@ -92,5 +92,10 @@ print("conversion done. writing records. ")
 f=open(topath+filename+'_ms1_record_mz5', 'wb')
 pickle.dump([RT_index,sorted_mz_list,maxI], f, protocol=2) #all mz_done
 f.close()
+
+f=open(topath+filename+'_ms1_record_mz5', 'wb')
+pickle.dump([sorted_mz_list,maxI], f, protocol=2) #all mz_done
+f.close()
+
 print("writing done.")
 
