@@ -89,12 +89,13 @@ for i in range(0, len(RT_list)):
     sorted_mz_list.append(mz_keys)
 
 print("conversion done. writing records. ")
-f=open(topath+filename+'_ms1_record_mz5', 'wb')
-pickle.dump([RT_index,sorted_mz_list,maxI], f, protocol=2) #all mz_done
-f.close()
 
+f=open(topath+'feature_list/pointCloud_'+dataname[data_index]+'_RT_index_new_mz5', 'wb')
+pickle.dump(RT_index,  f, protocol=3)
+f.close()
+    
 f=open(topath+filename+'_ms1_record_mz5', 'wb')
-pickle.dump([sorted_mz_list,maxI], f, protocol=2) #all mz_done
+pickle.dump([sorted_mz_list,maxI], f, protocol=3) #all mz_done
 f.close()
 
 print("writing done.")
