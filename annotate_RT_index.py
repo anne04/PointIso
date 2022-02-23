@@ -170,7 +170,7 @@ for data_index in (25, 26, 27, 28,  29, 30, 31, 32,  33, 34, 35, 36, 37, 38, 39,
             #else this isotope belongs to this same peptide        
             isotope_no=isotope_no+1
             mz_start=round(mz_start+isotope_gap[z], mz_resolution)
-            mz_end=round(mz_end+isotope_gap[z], mz_resolution) #mz_start+0.3333+0.3333
+            mz_end=round(mz_end+isotope_gap[z], mz_resolution) # e.g., mz_start+0.3333+0.3333
 
             
             min_RT=round(float(temp[8]), 2) #st
