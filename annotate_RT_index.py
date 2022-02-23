@@ -20,7 +20,7 @@ dataname=['130124_dilA_1_01','130124_dilA_1_02','130124_dilA_1_03','130124_dilA_
 '130124_dilA_5_01','130124_dilA_5_02','130124_dilA_5_03','130124_dilA_5_04',
 '130124_dilA_6_01','130124_dilA_6_02','130124_dilA_6_03','130124_dilA_6_04',
 '130124_dilA_7_01','130124_dilA_7_02','130124_dilA_7_03','130124_dilA_7_04',
-'130124_dilA_8_01','130124_dilA_8_02','130124_dilA_8_03','130124_dilA_8_04',
+rte'130124_dilA_8_01','130124_dilA_8_02','130124_dilA_8_03','130124_dilA_8_04',
 '130124_dilA_9_01','130124_dilA_9_02','130124_dilA_9_03','130124_dilA_9_04',
 '130124_dilA_10_01','130124_dilA_10_02', '130124_dilA_10_03', '130124_dilA_10_04', 
 '130124_dilA_11_01', '130124_dilA_11_02', '130124_dilA_11_03', '130124_dilA_11_04', 
@@ -46,8 +46,14 @@ for data_index in (25, 26, 27, 28,  29, 30, 31, 32,  33, 34, 35, 36, 37, 38, 39,
     print(dataname[data_index])
     count=0
     print('trying to load ms1 record')
+    
+
     f=open(path+'feature_list/pointCloud_'+dataname[data_index]+'_ms1_record_mz5', 'rb')
-    RT_index, sorted_mz_list,  maxI=pickle.load(f)
+    sorted_mz_list,  maxI=pickle.load(f)
+    f.close()  
+    
+    f=open(path+'feature_list/pointCloud_'+dataname[data_index]+'_RT_index_new_mz5', 'rb')
+    RT_index=pickle.load(f)
     f.close()   
     print('done!')
     
