@@ -236,7 +236,7 @@ for data_index in (25, 26, 27, 28,  29, 30, 31, 32,  33, 34, 35, 36, 37, 38, 39,
     print('window: max datapoints %g, min datapoints %g, avg %g, mode %g'%(max(poz_datapoints_window), min(poz_datapoints_window), np.mean(poz_datapoints_window), max(set(poz_datapoints_window), key=poz_datapoints_window.count)))  
 
     f=open(path+'feature_list/pointCloud_'+dataname[data_index]+'_RT_index_new_mz5', 'wb')
-    pickle.dump(RT_index,  f, protocol=2)
+    pickle.dump(RT_index,  f, protocol=3)
     f.close()
 
         
