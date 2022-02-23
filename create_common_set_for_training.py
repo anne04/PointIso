@@ -168,9 +168,18 @@ for data_index in range (0,25):
 
     print(count)
 
+    peptide_feature[:, 15]=-1
+    for i in range (0, len(common_set)):
+        peptide_feature[common_set[i][0], 15]=common_set[i][1] #indexing starts from 0
+    
 
-    f=open(path+'common_set/'+'pointCloud_'+dataname[data_index]+'_common_set_mz5', 'wb')
-    pickle.dump(common_set,  f, protocol=2)
-    f.close()
+    logfile=open(path+'feature_list/'+dataname[data_index]+'_featureList.csv', 'wb')
+    np.savetxt(logfile, peptide_feature, delimiter=',')
+    logfile.close()    
+    
+
+    #f=open(path+'common_set/'+'pointCloud_'+dataname[data_index]+'_common_set_mz5', 'wb')
+    #pickle.dump(common_set,  f, protocol=2)
+    #f.close()
 
 
