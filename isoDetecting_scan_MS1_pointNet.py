@@ -337,8 +337,7 @@ sorted_mz_list,maxI=pickle.load(f)
 f.close()  
 
 print('data read done!')
-
-RT_index=RT_mz_I_dict
+RT_mz_I_dict=RT_index
 
 RT_list=sorted(RT_mz_I_dict.keys())
 RT_index_array=dict()
