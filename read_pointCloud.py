@@ -1,6 +1,6 @@
 # python nohup -u read_pointCloud.py [filepath] [topath] [filename] > output.log &
 # python nohup -u read_pointCloud.py /data/anne/dilution_series_syn_pep/ /data/anne/dilution_series_syn_pep/hash_record/ 130124_dilA_1_01 > output.log &
-filepath=sys.argv[1]  output.log &
+
 from __future__ import division
 from __future__ import print_function
 import sys
@@ -90,7 +90,7 @@ for i in range(0, len(RT_list)):
 
 print("conversion done. writing records. ")
 
-f=open(topath+'feature_list/pointCloud_'+dataname[data_index]+'_RT_index_new_mz5', 'wb')
+f=open(topath+filename+'_RT_index_new_mz5', 'wb')
 pickle.dump(RT_index,  f, protocol=3)
 f.close()
     
