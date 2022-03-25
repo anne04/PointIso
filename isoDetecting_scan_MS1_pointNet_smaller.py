@@ -319,19 +319,24 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
     print('scanning test ms: '+dataname[test_index])
     print('trying to load ms1 record')
     data_index=test_index
-    f=open(datapath+'feature_list/'+'pointCloud_'+dataname[data_index]+'_ms1_record_mz5', 'rb')
-    RT_mz_I_dict, sorted_mz_list, maxI=pickle.load(f)
+    
+    f=open(recordpath+'pointCloud_'+sample_name+'_RT_index_new_mz5', 'rb')
+    RT_index=pickle.load(f)
     f.close()   
-    print('done!')
+
+    f=open(recordpath+'pointCloud_'+sample_name+'_ms1_record_mz5', 'rb')
+    sorted_mz_list,maxI=pickle.load(f)
+    f.close()  
+
+    print('data read done!')
+    RT_mz_I_dict=RT_index
     
     RT_list=sorted(RT_mz_I_dict.keys())
     RT_index_array=dict()
     for i in range (0, len(RT_list)):
         RT_index_array[round(RT_list[i], 2)]=i
         
-    f=open(datapath+'feature_list/pointCloud_'+dataname[data_index]+'_RT_index_new_mz5', 'rb')
-    RT_index=pickle.load(f)
-    f.close()  
+
 
     ###########################
     #scan ms1_block and record the cnn outputs in list_dict[z]: hash table based on m/z
