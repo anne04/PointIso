@@ -350,7 +350,7 @@ for i in range (0, len(RT_list)):
 mz_resolution=5
 RT_list = np.sort(list(RT_mz_I_dict.keys()))
 max_RT=RT_list[len(RT_list)-1]
-min_RT=10    
+min_RT=0    
 
 max_mz=0
 min_mz=1000
