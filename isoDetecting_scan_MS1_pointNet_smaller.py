@@ -344,7 +344,7 @@ for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
     mz_resolution=5
     RT_list = np.sort(list(RT_mz_I_dict.keys()))
     max_RT=RT_list[len(RT_list)-1]
-    min_RT=10    
+    min_RT=0 #10    
 
 #    sorted_mz_list=[]
 #    RT_index=dict()
