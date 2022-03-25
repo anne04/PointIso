@@ -327,10 +327,17 @@ print(dataname[test_index])
 print(gc.collect())
 print('trying to load ms1 record')
 data_index=test_index
-f=open(recordpath+'pointCloud_'+sample_name+'_ms1_record_mz5', 'rb')
-RT_mz_I_dict, sorted_mz_list, maxI=pickle.load(f)
+
+f=open(recordpath+'pointCloud_'+sample_name+'_RT_index_new_mz5', 'rb')
+RT_index=pickle.load(f)
 f.close()   
-print('done!')
+
+f=open(recordpath+'pointCloud_'+sample_name+'_ms1_record_mz5', 'rb')
+sorted_mz_list,maxI=pickle.load(f)
+f.close()  
+
+print('data read done!')
+
 RT_index=RT_mz_I_dict
 
 RT_list=sorted(RT_mz_I_dict.keys())
@@ -570,7 +577,7 @@ while current_mz<max_mz:
 print('total time taken %g'%(time()-total_time))     
 print('writing')
 f=open(topath+sample_name+'_IsoDetecting_scanned_result_'+start_mz, 'wb') #v3r2
-pickle.dump([list_dict,float(start_mz)], f, protocol=2) #all mz_done
+pickle.dump([list_dict,float(start_mz)], f, protocol=3) #all mz_done
 f.close()
 print('done')
 
