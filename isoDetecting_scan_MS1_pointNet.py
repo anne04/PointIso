@@ -4,7 +4,9 @@
 
 from __future__ import division
 from __future__ import print_function
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 from time import time
 import pickle
 import numpy as np
@@ -310,7 +312,7 @@ with tf.device('/device:GPU:'+ gpu_index):
     loss=tf.nn.sparse_softmax_cross_entropy_with_logits(logits=nw_out, labels=batchY_placeholder) # batchY_placeholder = [n x num_class] -- one hot vector for each n
     considered_loss=tf.multiply(sample_weight, loss)  
     total_loss=tf.reduce_mean(tf.reduce_mean(considered_loss, axis=1))
-    train_step = tf.contrib.opt.NadamOptimizer(learn_rate).minimize(total_loss)
+#    train_step = tf.contrib.opt.NadamOptimizer(learn_rate).minimize(total_loss)
 
 config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
 #config=tf.ConfigProto(log_device_placement=True)
