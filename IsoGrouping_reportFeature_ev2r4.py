@@ -3,7 +3,9 @@
 /data/anne/pointIso/3D_model/  130124_dilA_1_01 /data/anne/pointIso/3D_result/ 0 > output.log & '''
 from __future__ import print_function, division
 import numpy as np
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 import pickle
 import math
 import copy
@@ -206,7 +208,7 @@ with tf.device('/gpu:'+ gpu):  #sys.argv[1]): #
         
     total_loss = tf.reduce_mean(loss)
 
-    train_step = tf.contrib.opt.NadamOptimizer(learn_rate).minimize(total_loss) # tf.train.AdamOptimizer(learn_rate).minimize(total_loss) #tf.train.AdagradOptimizer(learn_rate).minimize(total_loss) # # tf.contrib.opt.NadamOptimizer(learn_rate).minimize(total_loss) #tf.train.AdagradOptimizer(learn_rate).minimize(total_loss) #
+#    train_step = tf.contrib.opt.NadamOptimizer(learn_rate).minimize(total_loss) # tf.train.AdamOptimizer(learn_rate).minimize(total_loss) #tf.train.AdagradOptimizer(learn_rate).minimize(total_loss) # # tf.contrib.opt.NadamOptimizer(learn_rate).minimize(total_loss) #tf.train.AdagradOptimizer(learn_rate).minimize(total_loss) #
 
 config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
 #config=tf.ConfigProto(log_device_placement=True)
@@ -220,29 +222,15 @@ saver = tf.train.Saver(max_to_keep=7)
 saver.restore(sess, modelpath+'trained-model_'+log_no+'_best.ckpt')
 ##########################
 
-#################### report feature module#####################################
+#########################################################
 print(filename) 
-f=open(scanpath+filename+'_pointIso_clusters', 'rb') # 98.35    
-isotope_cluster, max_num_iso,total_clusters=pickle.load(f)
-f.close()
-print('making cluster list')
-mz_list=sorted(isotope_cluster.keys())
-cluster_list=[]
-for i in range (0, len(mz_list)): #len(mz_list)
-    ftr_list=isotope_cluster[mz_list[i]]
-    for j in range (0, len(ftr_list)):
-        ftr=ftr_list[j]        
-        cluster_list.append(ftr)
-
-
-
-
-f=open(recordpath+filename+'_ms1_record_mz5', 'rb')
-RT_mz_I_dict, sorted_mz_list, maxI=pickle.load(f)
+f=gzip.open(recordpath+filename+'_RT_index_new_mz5', 'rb')
+RT_mz_I_dict=pickle.load(f)
 f.close()   
-print('done!')
 
-
+f=gzip.open(recordpath+filename+'_ms1_record_mz5', 'rb')
+sorted_mz_list,maxI=pickle.load(f)
+f.close()  
 
 print('data restore done')
 #scan ms1_block and record the cnn outputs in list_dict[z]: hash table based on m/z
@@ -255,9 +243,6 @@ RT_index_array=dict()
 for i in range (0, len(RT_list)):
     RT_index_array[round(RT_list[i], 2)]=i
 
-#    f=open(datapath+'feature_list/pointCloud_'+dataname[val_index]+'_RT_index_new_mz5', 'rb')
-#    RT_index=pickle.load(f)
-#    f.close()  
 RT_index= RT_mz_I_dict       
 
 max_mz=0
@@ -276,12 +261,20 @@ while(RT_list[rt_search_index]<min_RT):
     rt_search_index=rt_search_index+1
 print('preprocess done')
 
-############## match feature module ###########################################
+#########################################################
+f=open(scanpath+filename+'_pointIso_clusters', 'rb') # 98.35    
+isotope_cluster, max_num_iso,total_clusters=pickle.load(f)
+f.close()
+print('making cluster list')
+mz_list=sorted(isotope_cluster.keys())
+cluster_list=[]
+for i in range (0, len(mz_list)): #len(mz_list)
+    ftr_list=isotope_cluster[mz_list[i]]
+    for j in range (0, len(ftr_list)):
+        ftr=ftr_list[j]        
+        cluster_list.append(ftr)
 
-
-########################################################
-
-
+###########################################################
 total_clusters=len(cluster_list)
 print('making done %d'%(total_clusters))
 cluster_length=np.zeros((total_clusters))
@@ -473,8 +466,17 @@ for batch_idx in range (0, total_batch_val):
                 cluster_length[c]=cluster_length[c]-_prediction-1
 #                                _current_state = np.zeros((batch_size_val, state_size))
 
+print('raw number of features %d. Feature table is being written. '%total_feature)
+
+
+f=open(resultpath+filename+'_featureTable','wb') 
+pickle.dump(feature_table, f, protocol=3)
+f.close() 
+
+
+#### optional merging ######
 ############## merge features apart from each other with just 0.004 m/z and 0.01 RT ###########################################
-key_list=sorted(feature_table.keys())
+'''key_list=sorted(feature_table.keys())
 count=0
 RT_tol=.01 #4
 tolerance=0.004
@@ -640,8 +642,9 @@ print("total features %d "%count)
 
 
 f=open(resultpath+filename+'_featureTable','wb') 
-pickle.dump(feature_table, f, protocol=2)
+pickle.dump(feature_table, f, protocol=3)
 f.close() 
+'''
 
     
 
