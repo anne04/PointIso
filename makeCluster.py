@@ -60,9 +60,15 @@ num_neurons= num_class #mz_window*RT_window
     ####################################################################
 print('scanning test ms: '+dataname[test_index])
 print('trying to load ms1 record')
+
 f=open(recordpath+filename+'_ms1_record_mz5', 'rb')
-RT_mz_I_dict, sorted_mz_list, maxI=pickle.load(f)
+sorted_mz_list, maxI=pickle.load(f)
 f.close()   
+
+f=open(recordpath+filename+'_RT_index_new_mz5', 'rb')
+RT_mz_I_dict=pickle.load(f)
+f.close()  
+
 print('done!')
 gc.collect()
 ###########################
@@ -804,7 +810,7 @@ temp_isotope_cluster=0
 
 print("maximum number of isotopes in cluster is %d, total count of clusters %d "%(max_num_iso, total_cluster)) 
 f=open(scanpath+filename+'_pointIso_clusters', 'wb')
-pickle.dump([isotope_cluster, max_num_iso, total_cluster], f, protocol=2)
+pickle.dump([isotope_cluster, max_num_iso, total_cluster], f, protocol=3)
 f.close()
 print('cluster write done')
 
