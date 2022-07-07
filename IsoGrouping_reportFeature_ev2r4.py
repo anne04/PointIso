@@ -630,7 +630,16 @@ for i in range (0, len(key_list)) :
 
 feature_table=copy.deepcopy(new_feature_table)
 
-key_list=feature_table.keys()
+f=open(resultpath+filename+'_featureTable','wb') 
+pickle.dump(feature_table, f, protocol=3)
+f.close() 
+'''
+
+'''Feature table is a dictionary, where each key is a m/z value. The corresponding value is a list of peptide features.
+We can iterate over the list. The following code fragment prints only the (m/z, RT, charge) of monoisotope and total number 
+of isotopes for each feature. We can also print all the isotopes if we wish.'''
+
+'''key_list=feature_table.keys()
 count=0
 for mz in key_list:
     ftr_list=sorted(feature_table[mz])
@@ -639,11 +648,6 @@ for mz in key_list:
         print("monoisotope m/z=%g, RT=%g (%g to %g), charge=%d, number of isotopes=%d"%(ftr[0][0],ftr[0][1][0], ftr[0][1][1],ftr[0][1][2], int(ftr[len(ftr)-1][0]), len(ftr)-1))
         count=count+1
 print("total features %d "%count)
-
-
-f=open(resultpath+filename+'_featureTable','wb') 
-pickle.dump(feature_table, f, protocol=3)
-f.close() 
 '''
 
     
