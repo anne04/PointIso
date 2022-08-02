@@ -66,7 +66,7 @@ min_RT=10.00
 avg_sen=np.zeros((10))
 avg_set_count=0
 
-filename ='/data/fzohora/dilution_series_syn_pep/feature_list/mascot/peptides_in_the_dilution_series.csv'
+filename ='/data/fzohora/dilution_series_syn_pep/feature_list/mascot/spiked_peptides_in_the_dilution_series.csv'
 peptide_list = [] 
 csvfile=open(filename, 'r')
 csvreader = csv.reader(csvfile)     
