@@ -23,44 +23,47 @@ dataname=['130124_dilA_1_01','130124_dilA_1_02', '130124_dilA_1_03', '130124_dil
 '130124_dilA_10_01','130124_dilA_10_02', '130124_dilA_10_03', '130124_dilA_10_04', 
 '130124_dilA_11_01', '130124_dilA_11_02', '130124_dilA_11_03', '130124_dilA_11_04', 
 '130124_dilA_12_01', '130124_dilA_12_02', '130124_dilA_12_03', '130124_dilA_12_04'] 
+for test_index in range (0, 57):
+    f=gzip.open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc_exact_mz_fullRT','rb') #[-1.43,2.44] human-SRM 
+    feature_table,auc_list=pickle.load(f)
+    f.close()     
+    count=0
+    mz_list=list(feature_table.keys())
+    for i in range (0, len(mz_list)):
+        ftr_list=feature_table[mz_list[i]]
+        count=count+len(ftr_list)
 
-f=open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc','rb') #_merged
-feature_table=pickle.load(f)
-f.close()     
-count=0
-mz_list=list(feature_table.keys())
-for i in range (0, len(mz_list)):
-    ftr_list=feature_table[mz_list[i]]
-    count=count+len(ftr_list)
+    total_feature = count
+    print('total feature: ',total_feature)
 
-total_feature = count
-    
-feature_list=[]
-mz_list=list(feature_table.keys())
-for i in range (0, len(mz_list)):
-    ftr_list=feature_table[mz_list[i]]
-    for f in range (0, len(ftr_list)):
-        ftr=ftr_list[f]
-        item=[]
-        item.append(ftr[0][0]) # mono-isotopic m/z
-        item.append(ftr[0][1][0]) # max intensity RT point
-        item.append(ftr[len(ftr)-1][0]) # charge
-        item.append(ftr[0][1][1]) # start RT point
-        item.append(ftr[0][1][2]) # end RT point
-        item.append(ftr[len(ftr)-1][1]) # total intensity
-        
-        '''other_iso = ""
-        for iso in range (0, len(ftr)-1): add those'''
-        
-        feature_list.append(item)
-        
-feature_filename = '/home/fzohora/bsi/feature_list_csv/'+dataname[test_index]+'_feature_list_brief.csv'
-f=open(X_gene_filename, 'w', encoding='UTF8', newline='') #'/cluster/home/t116508uhn/test.csv'
-writer = csv.writer(f)
-# write the header
-writer.writerow(['mono-isotopic m/z', 'max intensity RT', 'charge', 'start RT', 'end RT', 'total intensity'])
-writer.writerows(feature_list)
-f.close()
-            
-          
-        
+    feature_list=[]
+    mz_list=list(feature_table.keys())
+    for i in range (0, len(mz_list)):
+        ftr_list=feature_table[mz_list[i]]
+        for f in range (0, len(ftr_list)):
+            ftr=ftr_list[f]
+            item=[]
+            item.append(ftr[0][0]) # mono-isotopic m/z
+            item.append(ftr[0][1][0]) # max intensity RT point
+            item.append(ftr[len(ftr)-1][0]) # charge
+            item.append(ftr[0][1][1]) # start RT point
+            item.append(ftr[0][1][2]) # end RT point
+            item.append(ftr[len(ftr)-1][2]) # total intensity
+
+            '''other_iso = ""
+            for iso in range (0, len(ftr)-1): add those'''
+
+            feature_list.append(item)
+
+    print(len(feature_list))
+
+    feature_filename = '/home/fzohora/bsi/feature_list_csv/'+dataname[test_index]+'_feature_list_brief.csv'
+    f=open(feature_filename, 'w', encoding='UTF8', newline='') #'/cluster/home/t116508uhn/test.csv'
+    writer = csv.writer(f)
+    # write the header
+    writer.writerow(['mono-isotopic m/z', 'max intensity RT', 'charge', 'start RT', 'end RT', 'total intensity'])
+    writer.writerows(feature_list)
+    f.close()
+
+
+
