@@ -49,7 +49,7 @@ for test_index in range (0, 57):
             item.append(ftr[0][1][1]) # start RT point
             item.append(ftr[0][1][2]) # end RT point
             item.append(ftr[len(ftr)-1][2]) # total intensity
-
+            item.append(ftr[len(ftr)-1][1]) # feature score
             '''other_iso = ""
             for iso in range (0, len(ftr)-1): add those'''
 
