@@ -48,8 +48,11 @@ for test_index in range (0, 57):
             item.append(ftr[len(ftr)-1][0]) # charge
             item.append(ftr[0][1][1]) # start RT point
             item.append(ftr[0][1][2]) # end RT point
+            item.append(len(ftr)-1) # number of isotopes
             item.append(ftr[len(ftr)-1][2]) # total intensity
-            item.append(ftr[len(ftr)-1][1]) # feature score
+            item.append(np.max(ftr[len(ftr)-1][1])) # feature score
+            item.append(ftr[len(ftr)-1][1]) # last layer softmax output
+            
             other_iso = ""
             for iso in range (1, len(ftr)-1): 
                 other_iso = other_iso + "iso "+ str(iso) +" - mz:" + str(ftr[iso][0]) +"; RT Peak:"+str(ftr[iso][1][0]) +"; RT start:"+str(ftr[iso][1][1])+"; RT end:"+str(ftr[iso][1][2])+"|"
@@ -58,11 +61,11 @@ for test_index in range (0, 57):
 
     print(len(feature_list))
 
-    feature_filename = '/home/fzohora/bsi/feature_list_csv/'+dataname[test_index]+'_feature_list_brief.csv'
+    feature_filename = '/home/fzohora/bsi/feature_list_csv/'+dataname[test_index]+'_feature_list_detailed.csv'
     f=open(feature_filename, 'w', encoding='UTF8', newline='') #'/cluster/home/t116508uhn/test.csv'
     writer = csv.writer(f)
     # write the header
-    writer.writerow(['mono-isotopic m/z', 'max intensity RT', 'charge', 'start RT', 'end RT', 'total intensity'])
+    writer.writerow(['mono-isotopic m/z', 'max intensity RT', 'charge', 'start RT', 'end RT', 'number of isotopes','total intensity', 'feature score','last layer softmax output'])
     writer.writerows(feature_list)
     f.close()
 
