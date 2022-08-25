@@ -2,48 +2,18 @@ from __future__ import division
 from __future__ import print_function
 import math
 import csv
-#from time import time
 import pickle
 import numpy as np
-#from sklearn import metrics
-#from collections import deque
 from collections import defaultdict
-#import sys
-#import copy
-#import scipy.misc
 import scipy.stats
-#import bisect
 import gzip
 import matplotlib.pyplot as plt
 
-#import seaborn as sns
 
-isotope_gap=np.zeros((10))
-isotope_gap[0]=0.01
-isotope_gap[1]=1.00
-isotope_gap[2]=0.50
-isotope_gap[3]=0.33
-isotope_gap[4]=0.25
-isotope_gap[5]=0.20
-isotope_gap[6]=0.17
-isotope_gap[7]=0.14
-isotope_gap[8]=0.13
-isotope_gap[9]=0.11
-
-
-RT_window=15
-mz_window=211
-frame_width=11
 mz_resolution=2
-total_class=10 # charge
 RT_unit=0.01
 mz_unit=0.01
-fc_size= 4
-total_frames_hor=6
-num_class=total_frames_hor # number of isotopes to report
-state_size = fc_size
-num_neurons= num_class #mz_window*RT_window
-truncated_backprop_length = 6
+
 mappath='/data/fzohora/dilution_series_syn_pep/LC_MS/'
 datapath='/data/fzohora/dilution_series_syn_pep/'      #'/data/fzohora/water/' #'/media/anne/Study/study/PhD/bsi/update/data/water/'  #
 dataname=['130124_dilA_1_01','130124_dilA_1_02', '130124_dilA_1_03', '130124_dilA_1_04',
@@ -87,9 +57,6 @@ for i in range (1, 159):
 pointIso_human_peptide_quantity=defaultdict(list)
 pointIso_potato_peptide_quantity=defaultdict(list)
 pointIso_background_peptide_quantity=defaultdict(list)
-#potato_detected_dict=dict()
-#human_detected_dict=dict()
-#background_detected_dict=dict()
 for test_index in range (0, 57):
 #    print(dataname[test_index])
     ###########################################################################            
@@ -138,14 +105,10 @@ for test_index in range (0, 57):
         ########################################################################
         detected_peptide=np.zeros((len(peptide_mascot), 7)) # 0 = our, 1 = peaks, 2 = maxquant, 3= charge by Peaks, 4=peaks id, 5=dino, 6=openMS
 
-#        f=gzip.open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc','rb') #[-2.4,1] - potato, [-1,2.5, bad, peak is moved right to 1] -human
-#        f=gzip.open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc_NO_mztolerance_fullwidth_fullRT','rb') #[-2.4,1]-potato; [-1.5,3] human   
-#        f=gzip.open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc_fullwidth_fullRT','rb') #[-1.5,3.0]human, [-2.6,1.0] potato
-#        f=gzip.open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc_NO_mztolerance_fullwidth','rb') # [-1.15, 2.44,peak displaced] human-SRM (2)     
-#        f=gzip.open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc_exact_mz','rb') #[-1.5, 0]-potato-SRM; [0,1.7] human-SRM  (3) 
         f=gzip.open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc_exact_mz_fullRT','rb') #[-1.43,2.44] human-SRM 
         feature_table,auc_list=pickle.load(f)
-        f.close()     
+        f.close()  
+        
         count=0
         mz_list=list(feature_table.keys())
         for i in range (0, len(mz_list)):
