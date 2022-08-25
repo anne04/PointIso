@@ -53,7 +53,7 @@ for test_index in range (0, 57):
             other_iso = ""
             for iso in range (1, len(ftr)-1): 
                 other_iso = other_iso + "iso "+ str(iso) +" - mz:" + str(ftr[iso][0]) +"; RT Peak:"+str(ftr[iso][1][0]) +"; RT start:"+str(ftr[iso][1][1])+"; RT end:"+str(ftr[iso][1][2])+"|"
-
+            item.append(other_iso)
             feature_list.append(item)
 
     print(len(feature_list))
