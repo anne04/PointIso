@@ -65,7 +65,7 @@ for test_index in range (0, 57):
     f=open(feature_filename, 'w', encoding='UTF8', newline='') #'/cluster/home/t116508uhn/test.csv'
     writer = csv.writer(f)
     # write the header
-    writer.writerow(['mono-isotopic m/z', 'max intensity RT', 'charge', 'start RT', 'end RT', 'number of isotopes','total intensity', 'feature score','last layer softmax output'])
+    writer.writerow(['mono-isotopic m/z', 'max intensity RT', 'charge', 'start RT', 'end RT', 'number of isotopes','total intensity', 'feature score','last layer softmax output','all isotopes'])
     writer.writerows(feature_list)
     f.close()
 
