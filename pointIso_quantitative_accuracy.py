@@ -28,14 +28,12 @@ dataname=['130124_dilA_1_01','130124_dilA_1_02', '130124_dilA_1_03', '130124_dil
 '130124_dilA_10_01','130124_dilA_10_02', '130124_dilA_10_03', '130124_dilA_10_04', 
 '130124_dilA_11_01', '130124_dilA_11_02', '130124_dilA_11_03', '130124_dilA_11_04', 
 '130124_dilA_12_01', '130124_dilA_12_02', '130124_dilA_12_03', '130124_dilA_12_04'] 
-#for test_index in range (int(sys.argv[1]), int(sys.argv[2])):
-result_all=np.zeros((len(dataname), 12))
-threshold_score=10.0
-percent_feature=20
-min_RT=10.00
-avg_sen=np.zeros((10))
-avg_set_count=0
 
+result_all=np.zeros((len(dataname), 12))
+min_peptide_score = 25 # MASCOT assigns a score to each peptide identification. Higher score implies higher probability of being a peptide. All peptides above this score will be considered in our analysis.  
+min_RT=10.00 # we are not considering features having RT value below min_RT because they mostly contain noise
+
+# load the list of spiked peptide provided by the data generation paper
 filename ='/data/fzohora/dilution_series_syn_pep/feature_list/mascot/spiked_peptides_in_the_dilution_series.csv'
 peptide_list = [] 
 csvfile=open(filename, 'r')
@@ -44,161 +42,151 @@ for row in csvreader:
     peptide_list.append(row)
 csvfile.close()
 
-spiked_peptide_dict=dict()#defaultdict(list)
+# record which peptides come from potato and which come from human. 
+spiked_peptide_dict=dict() 
 for i in range (1, 116):
    spiked_peptide_dict[peptide_list[i][0]]='potato' #.append('potato') #108
 for i in range (1, 159):
    spiked_peptide_dict[peptide_list[i][1]]='human' #.append('human') #142
 #for i in range (1, 30):
 #   spiked_peptide_dict[peptide_list[i][4]].append('background') #2425
-
 #2584 proteins in total
- 
+
+# These dictionaries will keep track of the quantification result using the peptide features detected by PointIso 
 pointIso_human_peptide_quantity=defaultdict(list)
 pointIso_potato_peptide_quantity=defaultdict(list)
 pointIso_background_peptide_quantity=defaultdict(list)
+
+# run on all samples 
 for test_index in range (0, 57):
-#    print(dataname[test_index])
-    ###########################################################################            
-    for runtime in range (0, 1): #
-        threshold_score=25
-        f=open(datapath+'feature_list/mascot/'+dataname[test_index]+'_mascot_db_search', 'rb')
-        peptide_mascot=pickle.load(f)
-        f.close()    
-        temp_peptide_mascot=[]
-        temp_peptide_mascot.append(peptide_mascot[0])
-        for i in range (1, len(peptide_mascot)):
-            if float(peptide_mascot[i][4])<=threshold_score:
-                continue
-            if round(float(peptide_mascot[i][7]), 2) < min_RT:#  or round(float(peptide_mascot[i][2]), mz_resolution)<min_mz: #or round(float(peptide_mascot[i][2]), mz_resolution)>800 or 
-                continue
-            temp_peptide_mascot.append(peptide_mascot[i])
-        peptide_mascot=temp_peptide_mascot
-        temp_peptide_mascot=0
+    ######################### Load MASCOT DB search result ####################
+    f=open(datapath+'feature_list/mascot/'+dataname[test_index]+'_mascot_db_search', 'rb')
+    peptide_mascot=pickle.load(f)
+    f.close()    
+    temp_peptide_mascot=[]
+    temp_peptide_mascot.append(peptide_mascot[0])
+    for i in range (1, len(peptide_mascot)):
+        if float(peptide_mascot[i][4])<=min_peptide_score:
+            continue
+        if round(float(peptide_mascot[i][7]), 2) < min_RT:#  or round(float(peptide_mascot[i][2]), mz_resolution)<min_mz: #or round(float(peptide_mascot[i][2]), mz_resolution)>800 or 
+            continue
+        temp_peptide_mascot.append(peptide_mascot[i])
+    peptide_mascot=temp_peptide_mascot
+    temp_peptide_mascot=0
+    
+    ##################### Mark the MASCOT identified peptides as human/potato/background peptide
+    peptide_mascot[0].append('type')
+    count=np.zeros((6))
+    potato_detected_dict=dict()
+    human_detected_dict=dict()
+    background_detected_dict=dict()
+    for i in range (1, len(peptide_mascot)):
+        if peptide_mascot[i][5] in spiked_peptide_dict:
+            peptide_mascot[i].append(spiked_peptide_dict[peptide_mascot[i][5]])
+            if spiked_peptide_dict[peptide_mascot[i][5]]=='potato':
+                count[0]=count[0]+1
+                potato_detected_dict[peptide_mascot[i][5]]='found'
+            elif spiked_peptide_dict[peptide_mascot[i][5]]=='human' :
+                count[1]=count[1]+1
+                human_detected_dict[peptide_mascot[i][5]]='found'
+        else:
+            peptide_mascot[i].append('background')
+            background_detected_dict[peptide_mascot[i][5]]='found'
+            count[5]=count[5]+1  
 
+    total_potato=len(potato_detected_dict.keys())
+    total_human=len(human_detected_dict.keys()) 
+    total_background=len(background_detected_dict.keys()) 
 
-        peptide_mascot[0].append('type')
-        count=np.zeros((6))
-        potato_detected_dict=dict()
-        human_detected_dict=dict()
-        background_detected_dict=dict()
-        for i in range (1, len(peptide_mascot)):
-            if peptide_mascot[i][5] in spiked_peptide_dict:
-                peptide_mascot[i].append(spiked_peptide_dict[peptide_mascot[i][5]])
-                if spiked_peptide_dict[peptide_mascot[i][5]]=='potato':
-                    count[0]=count[0]+1
-                    potato_detected_dict[peptide_mascot[i][5]]='found'
-                elif spiked_peptide_dict[peptide_mascot[i][5]]=='human' :
-                    count[1]=count[1]+1
-                    human_detected_dict[peptide_mascot[i][5]]='found'
-            else:
-                peptide_mascot[i].append('background')
-                background_detected_dict[peptide_mascot[i][5]]='found'
-                count[5]=count[5]+1  
-                
-        total_potato=len(potato_detected_dict.keys())
-        total_human=len(human_detected_dict.keys()) 
-        total_background=len(background_detected_dict.keys()) 
-        
-        total_report=np.zeros((1, 5)) # 0 = openMS, 1=maxQuant, 2=dino, 3=DeepIso, 4= peaks
-        ftr_matched_auc=np.zeros((len(peptide_mascot), 5)) # 0 = openMS, 1=maxQuant, 2=dino, 3=DeepIso, 4= peaks
-        ########################################################################
-        detected_peptide=np.zeros((len(peptide_mascot), 7)) # 0 = our, 1 = peaks, 2 = maxquant, 3= charge by Peaks, 4=peaks id, 5=dino, 6=openMS
+    total_report=np.zeros((1, 5)) # keeps track of total number of peptide features detected by the softwares. column 0=openMS, 1=maxQuant, 2=dino, 3=DeepIso, 4= peaks
+    ftr_matched_auc=np.zeros((len(peptide_mascot), 5)) # 0 = openMS, 1=maxQuant, 2=dino, 3=DeepIso, 4= peaks
+    ########################################################################
+    detected_peptide=np.zeros((len(peptide_mascot), 7)) # 0 = our, 1 = peaks, 2 = maxquant, 3= charge by Peaks, 4=peaks id, 5=dino, 6=openMS
+    f=gzip.open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc_exact_mz_fullRT','rb') #[-1.43,2.44] human-SRM 
+    feature_table,auc_list=pickle.load(f)
+    f.close()  
 
-        f=gzip.open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc_exact_mz_fullRT','rb') #[-1.43,2.44] human-SRM 
-        feature_table,auc_list=pickle.load(f)
-        f.close()  
-        
-        count=0
-        mz_list=list(feature_table.keys())
-        for i in range (0, len(mz_list)):
+    count=0
+    mz_list=list(feature_table.keys())
+    for i in range (0, len(mz_list)):
 #            print(i)
-            ftr_list=feature_table[mz_list[i]]
-            for f in range (0, len(ftr_list)):
-                ftr=ftr_list[f]
-                score_ftr=max(ftr[len(ftr)-1][1])
-                if (np.argmax(ftr[len(ftr)-1][1])==1 and score_ftr<.80) or (len(ftr)-1==1 and score_ftr<.50) or score_ftr<.30: # or # : #  (len(ftr)-1)==1 and 
-                    continue
-                count=count+1
-        
+        ftr_list=feature_table[mz_list[i]]
+        for f in range (0, len(ftr_list)):
+            ftr=ftr_list[f]
+            score_ftr=max(ftr[len(ftr)-1][1])
+            if (np.argmax(ftr[len(ftr)-1][1])==1 and score_ftr<.80) or (len(ftr)-1==1 and score_ftr<.50) or score_ftr<.30: # or # : #  (len(ftr)-1)==1 and 
+                continue
+            count=count+1
+
 #        print(count)
-        total_report[0, 3]=count
+    total_report[0, 3]=count
 
-        
 
-        conf=100
-        ####################################################
-        potato_detected_dict=dict()
-        human_detected_dict=dict()
-        background_detected_dict=dict()
-        RT_tolerance=0.2 # dino is same
-        found_ftr=0
-        detected_peptide[:, 0]=0
-        ftr_matched_auc[:, 3]=0
-        total_feature=0
-        found_score=[]
-        detected_ftr_list=[]
+
+    conf=100
+    ###################### Match the detected peptide features with MASCOT DB search result ###################################
+    potato_detected_dict=dict()
+    human_detected_dict=dict()
+    background_detected_dict=dict()
+    RT_tolerance=0.2 # dino is same
+    found_ftr=0
+    detected_peptide[:, 0]=0
+    ftr_matched_auc[:, 3]=0
+    total_feature=0
+    found_score=[]
+    detected_ftr_list=[]
+    detected_ftr_list.append([])
+    for i in range (1, len(peptide_mascot)):
         detected_ftr_list.append([])
-        for i in range (1, len(peptide_mascot)):
-            detected_ftr_list.append([])
-            found=0
-            mz_exact=round(float(peptide_mascot[i][2]), mz_resolution)
-            total_feature=total_feature+1           
-            mz_range=[]
-            mz_range.append(mz_exact)    
-            tolerance_mz=0.01 #(mz_exact*10.0)/10**6  # dinosaur = 0.005 
-            mz_range.append(round(mz_exact-tolerance_mz, mz_resolution))
-            mz_range.append(round(mz_exact+tolerance_mz, mz_resolution))
-            pep_seq_key=str(test_index)+'-'+str(mz_exact)+str(round(float(peptide_mascot[i][7]), 2))+'|'+str(int(peptide_mascot[i][3]))+peptide_mascot[i][5]
-            for j in range (0, len(mz_range)):
-                mz=mz_range[j]
-                if mz in feature_table:
-                    ftr_list=feature_table[mz]
-                    for k in range (0, len(ftr_list)):
-                        ftr=ftr_list[k]
+        found=0
+        mz_exact=round(float(peptide_mascot[i][2]), mz_resolution)
+        total_feature=total_feature+1           
+        mz_range=[]
+        mz_range.append(mz_exact)    
+        tolerance_mz=0.01 #(mz_exact*10.0)/10**6  # dinosaur = 0.005 
+        mz_range.append(round(mz_exact-tolerance_mz, mz_resolution))
+        mz_range.append(round(mz_exact+tolerance_mz, mz_resolution))
+        pep_seq_key=str(test_index)+'-'+str(mz_exact)+str(round(float(peptide_mascot[i][7]), 2))+'|'+str(int(peptide_mascot[i][3]))+peptide_mascot[i][5]
+        for j in range (0, len(mz_range)):
+            mz=mz_range[j]
+            if mz in feature_table:
+                ftr_list=feature_table[mz]
+                for k in range (0, len(ftr_list)):
+                    ftr=ftr_list[k]
 #                        if ftr[len(ftr)-1][1]<auc_list[(conf*(len(auc_list)-1))//100]:
 #                            continue
-                        ftr_z=int(ftr[len(ftr)-1][0])    
-                        peak_RT=ftr[0][1][0] 
-                        score_ftr=max(ftr[len(ftr)-1][1])
-                        if (np.argmax(ftr[len(ftr)-1][1])==1 and score_ftr<.80) or (len(ftr)-1==1 and score_ftr<.50) or score_ftr<.30: # or (len(ftr)-1==1 and score_ftr<.50): #  (len(ftr)-1)==1 and 
-                            continue
-                        if (round(float(peptide_mascot[i][7])-RT_tolerance, 2) <= peak_RT) and (peak_RT<=round(float(peptide_mascot[i][7])+RT_tolerance, 2)) and ftr_z==int(peptide_mascot[i][3]):
-                            found=1
-                            found_ftr=found_ftr+1
-                            detected_peptide[i, 0]=1
-                            if peptide_mascot[i][8]=='potato':
-                                potato_detected_dict[peptide_mascot[i][5]]='found'
-                                pointIso_potato_peptide_quantity[pep_seq_key].append(ftr[len(ftr)-1][2])
-                            elif peptide_mascot[i][8]=='human':
-                                human_detected_dict[peptide_mascot[i][5]]='found'
-                                pointIso_human_peptide_quantity[pep_seq_key].append(ftr[len(ftr)-1][2])
-                            else:
-                                background_detected_dict[peptide_mascot[i][5]]='found'
-                                pointIso_background_peptide_quantity[pep_seq_key].append(ftr[len(ftr)-1][2])
-                                
-#                            break
+                    ftr_z=int(ftr[len(ftr)-1][0])    
+                    peak_RT=ftr[0][1][0] 
+                    score_ftr=max(ftr[len(ftr)-1][1])
+                    if (np.argmax(ftr[len(ftr)-1][1])==1 and score_ftr<.80) or (len(ftr)-1==1 and score_ftr<.50) or score_ftr<.30: # or (len(ftr)-1==1 and score_ftr<.50): #  (len(ftr)-1)==1 and 
+                        continue
+                    if (round(float(peptide_mascot[i][7])-RT_tolerance, 2) <= peak_RT) and (peak_RT<=round(float(peptide_mascot[i][7])+RT_tolerance, 2)) and ftr_z==int(peptide_mascot[i][3]):
+                        found=1
+                        found_ftr=found_ftr+1
+                        detected_peptide[i, 0]=1
+                        if peptide_mascot[i][8]=='potato':
+                            potato_detected_dict[peptide_mascot[i][5]]='found'
+                            pointIso_potato_peptide_quantity[pep_seq_key].append(ftr[len(ftr)-1][2])
+                        elif peptide_mascot[i][8]=='human':
+                            human_detected_dict[peptide_mascot[i][5]]='found'
+                            pointIso_human_peptide_quantity[pep_seq_key].append(ftr[len(ftr)-1][2])
+                        else:
+                            background_detected_dict[peptide_mascot[i][5]]='found'
+                            pointIso_background_peptide_quantity[pep_seq_key].append(ftr[len(ftr)-1][2])
 
-#                    if found==1:
-#                        break
-#                        
 
-#    print('%s, %d, %g, %g, %d, %g, %g, %d'%(dataname[test_index], len(list(human_detected_dict.keys())),  (len(list(human_detected_dict.keys()))/158)*100, 
-#    (total_human/158)*100, len(list(potato_detected_dict.keys())),  (len(list(potato_detected_dict.keys()))/115)*100, (total_potato/115)*100, total_report[0, 3]))
-#    print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
+if quantify_sample == "human":
+    candidate_peptide_quantity=pointIso_human_peptide_quantity
+elif quantify_sample == "potato":
+    candidate_peptide_quantity=pointIso_potato_peptide_quantity
+elif quantify_sample == "background":
+    candidate_peptide_quantity=pointIso_background_peptide_quantity
     
-#    print('%s, %g, %d'%(dataname[test_index], (len(list(background_detected_dict.keys()))/total_background)*100, total_report[0, 3]))
-    
-#candidate_peptide_quantity=pointIso_human_peptide_quantity
-#candidate_peptide_quantity=pointIso_potato_peptide_quantity
-candidate_peptide_quantity=pointIso_background_peptide_quantity
-
 candidate_peptide_quantity_sample=[]
 for i in range (0, 12):
     candidate_peptide_quantity_sample.append(defaultdict(list)) 
     
 for pep_seq_key in candidate_peptide_quantity.keys():
-#    print(candidate_peptide_quantity[pep_seq_key])
     intensity=np.mean(candidate_peptide_quantity[pep_seq_key]) #sum,avg,max? # multiple hit to the same psm
     candidate_peptide_quantity[pep_seq_key]=intensity
     ms_file=int((pep_seq_key.split('-'))[0])
@@ -310,7 +298,7 @@ for test_index in range (0, 57):
         csvfile.close()
         
 
-        threshold_score=25
+       
         f=open(datapath+'feature_list/mascot/'+dataname[test_index]+'_mascot_db_search', 'rb')
         peptide_mascot=pickle.load(f)
         f.close()    
@@ -318,7 +306,7 @@ for test_index in range (0, 57):
         temp_peptide_mascot=[]
         temp_peptide_mascot.append(peptide_mascot[0])
         for i in range (1, len(peptide_mascot)):
-            if float(peptide_mascot[i][4])<=threshold_score:
+            if float(peptide_mascot[i][4])<=min_peptide_score:
                 continue
             if round(float(peptide_mascot[i][7]), 2) < min_RT:#  or round(float(peptide_mascot[i][2]), mz_resolution)<min_mz: #or round(float(peptide_mascot[i][2]), mz_resolution)>800 or 
                 continue
@@ -570,7 +558,7 @@ for test_index in range (0, 57):
             peptide_list.append(row)
         csvfile.close()
            
-        threshold_score=25
+      
         f=open(datapath+'feature_list/mascot/'+dataname[test_index]+'_mascot_db_search', 'rb')
         peptide_mascot=pickle.load(f)
         f.close()    
@@ -578,7 +566,7 @@ for test_index in range (0, 57):
         temp_peptide_mascot=[]
         temp_peptide_mascot.append(peptide_mascot[0])
         for i in range (1, len(peptide_mascot)):
-            if float(peptide_mascot[i][4])<=threshold_score:
+            if float(peptide_mascot[i][4])<=min_peptide_score:
                 continue
             if round(float(peptide_mascot[i][7]), 2) < min_RT:#  or round(float(peptide_mascot[i][2]), mz_resolution)<min_mz: #or round(float(peptide_mascot[i][2]), mz_resolution)>800 or 
                 continue
@@ -839,8 +827,7 @@ for test_index in range (0, 57):
             peptide_list.append(row)
         csvfile.close()
         
-           
-        threshold_score=25
+     
         f=open(datapath+'feature_list/mascot/'+dataname[test_index]+'_mascot_db_search', 'rb')
         peptide_mascot=pickle.load(f)
         f.close()    
@@ -848,7 +835,7 @@ for test_index in range (0, 57):
         temp_peptide_mascot=[]
         temp_peptide_mascot.append(peptide_mascot[0])
         for i in range (1, len(peptide_mascot)):
-            if float(peptide_mascot[i][4])<=threshold_score:
+            if float(peptide_mascot[i][4])<=min_peptide_score:
                 continue
             if round(float(peptide_mascot[i][7]), 2) < min_RT:#  or round(float(peptide_mascot[i][2]), mz_resolution)<min_mz: #or round(float(peptide_mascot[i][2]), mz_resolution)>800 or 
                 continue
@@ -1110,7 +1097,6 @@ for test_index in range (0, 57):
         csvfile.close()
         
 
-        threshold_score=25
         f=open(datapath+'feature_list/mascot/'+dataname[test_index]+'_mascot_db_search', 'rb')
         peptide_mascot=pickle.load(f)
         f.close()    
@@ -1118,7 +1104,7 @@ for test_index in range (0, 57):
         temp_peptide_mascot=[]
         temp_peptide_mascot.append(peptide_mascot[0])
         for i in range (1, len(peptide_mascot)):
-            if float(peptide_mascot[i][4])<=threshold_score:
+            if float(peptide_mascot[i][4])<=min_peptide_score:
                 continue
             if round(float(peptide_mascot[i][7]), 2) < min_RT:#  or round(float(peptide_mascot[i][2]), mz_resolution)<min_mz: #or round(float(peptide_mascot[i][2]), mz_resolution)>800 or 
                 continue
