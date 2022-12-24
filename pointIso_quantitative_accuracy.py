@@ -54,6 +54,9 @@ for i in range (1, 159):
 #   spiked_peptide_dict[peptide_list[i][4]].append('background') #2425
 #2584 proteins in total
 
+
+print('Find the plot for PointIso')
+##################### Find the plot for pointIso #######################################################
 # These dictionaries will keep track of the quantification result using the peptide features detected by PointIso 
 pointIso_human_peptide_quantity=defaultdict(list)
 pointIso_potato_peptide_quantity=defaultdict(list)
@@ -125,7 +128,7 @@ for test_index in range (0, 57):
 #        print(count)
     total_report[0, 3]=count
 
-    # STEP 1
+    
     ###################### Record the total intensity of the detected peptide features who match with MASCOT DB search result ###################################
     potato_detected_dict=dict()
     human_detected_dict=dict()
@@ -184,7 +187,7 @@ elif quantify_sample == "background":
     candidate_peptide_quantity=pointIso_background_peptide_quantity
     
 # 12 samples, each having 4 replicates
-######################## Step 2: do alignment of peptide features over multiple runs #######################
+######################## Step 1: do alignment of peptide features over multiple runs #######################
 candidate_peptide_quantity_sample=[]
 for i in range (0, 12):
     candidate_peptide_quantity_sample.append(defaultdict(list)) 
@@ -234,6 +237,7 @@ for sample_id in range (0, 12):
             candidate_peptide_quantity_sample[sample_id][seq].append(considered_intensity)
 
 temp_hold=candidate_peptide_quantity_sample
+######################## Step 2: Take the maximum intensity for each alignment #######################
 candidate_peptide_quantity_sample=[]
 for i in range (0, 12):
     candidate_peptide_quantity_sample.append(defaultdict(list))   
@@ -246,7 +250,7 @@ for sample_id in range (0, 12):
         if considered_intensity>0:
             candidate_peptide_quantity_sample[sample_id][seq].append(considered_intensity)
             
-############## for each feature, record it's intensity and respective sample id within [0-12] ########################
+############## Step 3 and 4: for each feature, record it's intensity and respective sample id within [0-12] ########################
 feature_auc_per_sample=defaultdict(list) 
 total_intensity=0
 for sample_id in range (0, 12):
@@ -288,8 +292,8 @@ plt.hist(slope_dist_pointIso, bins=10, alpha=0.9, density=True, label='pointIso'
 plt.legend(loc='upper right')
 #plt.show(block=False)
 ######################################################################################################
-
-
+print('Find the plot for PEAKS')
+##################### Find the plot for PEAKS #######################################################
 ####################################### Repeat the procedure for PEAKS ##################################
 peaks_background_peptide_quantity=defaultdict(list)
 peaks_human_peptide_quantity=defaultdict(list)
@@ -544,8 +548,8 @@ plt.hist(slope_dist_peaks, bins=10, alpha=0.9, density=True, label='peaks', hist
 plt.legend(loc='upper right')
 #plt.show(block=False)
 ################################################################################################################################
-
-
+print('Find the plot for Dinosaurs')
+##################### Find the plot for Dinosaurs #######################################################
 ############################# Repeat the procedure for Dinosaurs ################################################################
 dino_human_peptide_quantity=defaultdict(list)
 dino_potato_peptide_quantity=defaultdict(list)
@@ -813,7 +817,7 @@ plt.legend(loc='upper right')
 #plt.show(block=False)
 ##############################################################################################################
 
-
+##################### Find the plot for MaxQuant #######################################################
 ###################################### Repeat the procedure for MaxQuant ####################################
 mq_background_peptide_quantity=defaultdict(list)
 mq_human_peptide_quantity=defaultdict(list)
@@ -1075,7 +1079,8 @@ plt.hist(slope_dist_mq, bins=10, alpha=0.9, density=True, label='mq', histtype='
 plt.legend(loc='upper right')
 #plt.show(block=False)
 ##########################################################################
-
+print('Find the plot for OpenMS')
+##################### Find the plot for OpenMS #######################################################
 ####################################### Repeat the procedure for OpenMS ###################################
 openMS_background_peptide_quantity=defaultdict(list)    
 openMS_human_peptide_quantity=defaultdict(list)
@@ -1326,6 +1331,6 @@ plt.hist(slope_dist_openMS, bins=10, alpha=0.9, density=True, label='openMS', hi
 plt.legend(loc='upper right')
 #plt.show(block=False)
 #####################################################################################################################
-
+print('Save the combined plot for Label Free Quantification') # 
 plt.savefig(save_path+'LFQ_plot_'+quantify_sample+'.jpg', dpi=400)
 plt.clf()
