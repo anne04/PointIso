@@ -9,6 +9,8 @@ import scipy.stats
 import gzip
 import matplotlib.pyplot as plt
 
+save_path = '/data/fzohora/dilution_series_syn_pep/'
+quantify_sample = "human" #/"potato"/"background"
 
 mz_resolution=2
 RT_unit=0.01
@@ -98,14 +100,15 @@ for test_index in range (0, 57):
     total_human=len(human_detected_dict.keys()) 
     total_background=len(background_detected_dict.keys()) 
 
+    ###################### Detected Peptide Features ##################################################
     total_report=np.zeros((1, 5)) # keeps track of total number of peptide features detected by the softwares. column 0=openMS, 1=maxQuant, 2=dino, 3=DeepIso, 4= peaks
-    ftr_matched_auc=np.zeros((len(peptide_mascot), 5)) # 0 = openMS, 1=maxQuant, 2=dino, 3=DeepIso, 4= peaks
-    ########################################################################
-    detected_peptide=np.zeros((len(peptide_mascot), 7)) # 0 = our, 1 = peaks, 2 = maxquant, 3= charge by Peaks, 4=peaks id, 5=dino, 6=openMS
+    ftr_matched_auc=np.zeros((len(peptide_mascot), 5)) # keeps the total intensity of the peptides based on the matched feature. column 0 = openMS, 1=maxQuant, 2=dino, 3=DeepIso, 4= peaks
+    detected_peptide=np.zeros((len(peptide_mascot), 7)) # keep tracks of which identified peptides are detected by softwares. column 0 = our, 1 = peaks, 2 = maxquant, 3= charge by Peaks, 4=peaks id, 5=dino, 6=openMS
+    ###################### Load the peptide feature list (can also use feature list *.csv file) ##############################################
     f=gzip.open(datapath+'/feature_list/deepIsoV2_'+dataname[test_index]+'_featureTable_v6r1_cv5_ev2r6b_merged_auc_exact_mz_fullRT','rb') #[-1.43,2.44] human-SRM 
     feature_table,auc_list=pickle.load(f)
     f.close()  
-
+    ##################### Filter out the low scored and non-reliable peptide features, keep only reliable ones.   
     count=0
     mz_list=list(feature_table.keys())
     for i in range (0, len(mz_list)):
@@ -114,6 +117,7 @@ for test_index in range (0, 57):
         for f in range (0, len(ftr_list)):
             ftr=ftr_list[f]
             score_ftr=max(ftr[len(ftr)-1][1])
+            # discard non reliable features
             if (np.argmax(ftr[len(ftr)-1][1])==1 and score_ftr<.80) or (len(ftr)-1==1 and score_ftr<.50) or score_ftr<.30: # or # : #  (len(ftr)-1)==1 and 
                 continue
             count=count+1
@@ -121,10 +125,8 @@ for test_index in range (0, 57):
 #        print(count)
     total_report[0, 3]=count
 
-
-
-    conf=100
-    ###################### Match the detected peptide features with MASCOT DB search result ###################################
+    # STEP 1
+    ###################### Record the total intensity of the detected peptide features who match with MASCOT DB search result ###################################
     potato_detected_dict=dict()
     human_detected_dict=dict()
     background_detected_dict=dict()
@@ -153,11 +155,10 @@ for test_index in range (0, 57):
                 ftr_list=feature_table[mz]
                 for k in range (0, len(ftr_list)):
                     ftr=ftr_list[k]
-#                        if ftr[len(ftr)-1][1]<auc_list[(conf*(len(auc_list)-1))//100]:
-#                            continue
                     ftr_z=int(ftr[len(ftr)-1][0])    
                     peak_RT=ftr[0][1][0] 
                     score_ftr=max(ftr[len(ftr)-1][1])
+                    # ignore non-reliable features
                     if (np.argmax(ftr[len(ftr)-1][1])==1 and score_ftr<.80) or (len(ftr)-1==1 and score_ftr<.50) or score_ftr<.30: # or (len(ftr)-1==1 and score_ftr<.50): #  (len(ftr)-1)==1 and 
                         continue
                     if (round(float(peptide_mascot[i][7])-RT_tolerance, 2) <= peak_RT) and (peak_RT<=round(float(peptide_mascot[i][7])+RT_tolerance, 2)) and ftr_z==int(peptide_mascot[i][3]):
@@ -174,7 +175,7 @@ for test_index in range (0, 57):
                             background_detected_dict[peptide_mascot[i][5]]='found'
                             pointIso_background_peptide_quantity[pep_seq_key].append(ftr[len(ftr)-1][2])
 
-
+####### based on the input choice select peptides for comparison ##########################################
 if quantify_sample == "human":
     candidate_peptide_quantity=pointIso_human_peptide_quantity
 elif quantify_sample == "potato":
@@ -182,6 +183,8 @@ elif quantify_sample == "potato":
 elif quantify_sample == "background":
     candidate_peptide_quantity=pointIso_background_peptide_quantity
     
+# 12 samples, each having 4 replicates
+######################## Step 2: do alignment of peptide features over multiple runs #######################
 candidate_peptide_quantity_sample=[]
 for i in range (0, 12):
     candidate_peptide_quantity_sample.append(defaultdict(list)) 
@@ -215,13 +218,13 @@ for pep_seq_key in candidate_peptide_quantity.keys():
         candidate_peptide_quantity_sample[1][mz_rt_z_seq].append(intensity)
     elif ms_file>=0:
         candidate_peptide_quantity_sample[0][mz_rt_z_seq].append(intensity)
-    
-    
 
 temp_hold=candidate_peptide_quantity_sample
+
 candidate_peptide_quantity_sample=[]
 for i in range (0, 12):
     candidate_peptide_quantity_sample.append(defaultdict(list))   
+
 for sample_id in range (0, 12):
     feature_list=temp_hold[sample_id].keys()
     for feature in feature_list:
@@ -242,7 +245,8 @@ for sample_id in range (0, 12):
         z=int(feature[0])
         if considered_intensity>0:
             candidate_peptide_quantity_sample[sample_id][seq].append(considered_intensity)
-
+            
+############## for each feature, record it's intensity and respective sample id within [0-12] ########################
 feature_auc_per_sample=defaultdict(list) 
 total_intensity=0
 for sample_id in range (0, 12):
@@ -252,7 +256,7 @@ for sample_id in range (0, 12):
         if considered_intensity>0:
             feature_auc_per_sample[feature].append([sample_id, considered_intensity])
         total_intensity=total_intensity+considered_intensity
-            
+############### Get the slopes and draw the plots #####################################################################         
 peptide_slopes=[]
 feature_list=list(feature_auc_per_sample.keys())
 for j in range(0, len(feature_list)):
@@ -282,8 +286,11 @@ for i in range (0, len(peptide_slopes)):
     
 plt.hist(slope_dist_pointIso, bins=10, alpha=0.9, density=True, label='pointIso', histtype='step') #
 plt.legend(loc='upper right')
-plt.show(block=False)
+#plt.show(block=False)
 ######################################################################################################
+
+
+####################################### Repeat the procedure for PEAKS ##################################
 peaks_background_peptide_quantity=defaultdict(list)
 peaks_human_peptide_quantity=defaultdict(list)
 peaks_potato_peptide_quantity=defaultdict(list)
@@ -403,8 +410,6 @@ for test_index in range (0, 57):
                     ftr_list=feature_table_peaks[mz]
                     for k in range (0, len(ftr_list)):
                         ftr=ftr_list[k]
-#                        if ftr[3]<auc_list_peaks[high_conf_limit]:
-#                            continue
                         peak_RT=ftr[1]
                         if (round(float(peptide_mascot[i][7])-RT_tolerance, 2) <= peak_RT) and (peak_RT<=round(float(peptide_mascot[i][7])+RT_tolerance, 2)) and int(ftr[2])==int(peptide_mascot[i][3]):
                             found=1
@@ -424,22 +429,19 @@ for test_index in range (0, 57):
                                 background_detected_dict[peptide_mascot[i][5]]='found'
                                 peaks_background_peptide_quantity[pep_seq_key].append(ftr[3])
                                 
-#                            break
 
-#                    if found==1:
-#                        break
-                        
-#        print('%d'%len(list(human_detected_dict.keys())))
-#        print('%d'%len(list(potato_detected_dict.keys())))
-        #human peptides are grouped by sample 1 to 12
-#        print(' %g, %g'%((len(list(human_detected_dict.keys()))/158)*100, (len(list(potato_detected_dict.keys()))/115)*100))
         print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
 
         
-#candidate_peptide_quantity=peaks_human_peptide_quantity
-#candidate_peptide_quantity=peaks_potato_peptide_quantity
-candidate_peptide_quantity=peaks_background_peptide_quantity
 
+if quantify_sample == "human":
+    candidate_peptide_quantity=peaks_human_peptide_quantity
+elif quantify_sample == "potato":
+    candidate_peptide_quantity=peaks_potato_peptide_quantity
+elif quantify_sample == "background":
+    candidate_peptide_quantity=peaks_background_peptide_quantity
+
+    
 
 candidate_peptide_quantity_sample=[]
 for i in range (0, 12):
@@ -529,9 +531,7 @@ for j in range(0, len(feature_list)):
 
     for i in range (0, len(y_series)):
         y_series[i]=math.log(y_series[i]) #(y_series[i]-min_intensity)/(max_intensity-min_intensity)
-    
-#    print(j)
-#    print(y_series)
+
     slope, intercept, r, p, se = scipy.stats.linregress(x_series, y_series) #scipy.stats.linregress(x_series[start_file:end_file], y_series[start_file:end_file])
     peptide_slopes.append([round(slope,2), feature])
 
@@ -542,9 +542,11 @@ for i in range (0, len(peptide_slopes)):
     
 plt.hist(slope_dist_peaks, bins=10, alpha=0.9, density=True, label='peaks', histtype='step') #
 plt.legend(loc='upper right')
-plt.show(block=False)
+#plt.show(block=False)
+################################################################################################################################
 
-#############################################################################################
+
+############################# Repeat the procedure for Dinosaurs ################################################################
 dino_human_peptide_quantity=defaultdict(list)
 dino_potato_peptide_quantity=defaultdict(list)
 dino_background_peptide_quantity=defaultdict(list)
@@ -696,18 +698,15 @@ for test_index in range (0, 57):
                                 background_detected_dict[peptide_mascot[i][5]]='found'
                                 dino_background_peptide_quantity[pep_seq_key].append(ftr[2])
                                 
-#                            break
-#
-#                    if found==1:
-#                        break
+
         print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
 
-#        print(' %g, %g'%((len(list(human_detected_dict.keys()))/158)*100, (len(list(potato_detected_dict.keys()))/115)*100))
-
-
-#candidate_peptide_quantity=dino_human_peptide_quantity
-#candidate_peptide_quantity=dino_potato_peptide_quantity
-candidate_peptide_quantity=dino_background_peptide_quantity
+if quantify_sample == "human":
+    candidate_peptide_quantity=dino_human_peptide_quantity
+elif quantify_sample == "potato":
+    candidate_peptide_quantity=dino_potato_peptide_quantity
+elif quantify_sample == "background":
+    candidate_peptide_quantity=dino_background_peptide_quantity
 
 candidate_peptide_quantity_sample=[]
 for i in range (0, 12):
@@ -811,9 +810,11 @@ for i in range (0, len(peptide_slopes)):
     
 plt.hist(slope_dist_dino, bins=10, alpha=0.9, density=True, label='dino', histtype='step') #
 plt.legend(loc='upper right')
-plt.show(block=False)
+#plt.show(block=False)
 ##############################################################################################################
 
+
+###################################### Repeat the procedure for MaxQuant ####################################
 mq_background_peptide_quantity=defaultdict(list)
 mq_human_peptide_quantity=defaultdict(list)
 mq_potato_peptide_quantity=defaultdict(list)
@@ -957,17 +958,17 @@ for test_index in range (0, 57):
                                 background_detected_dict[peptide_mascot[i][5]]='found'
                                 mq_background_peptide_quantity[pep_seq_key].append(ftr[2])
                                 
-#                            break
-#
-#                    if found==1:
-#                        break
-        print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
-#        print('%d'%len(list(human_detected_dict.keys())))
-#        print(' %g, %g'%((len(list(human_detected_dict.keys()))/158)*100, (len(list(potato_detected_dict.keys()))/115)*100))
 
-#candidate_peptide_quantity=mq_human_peptide_quantity
-#candidate_peptide_quantity=mq_potato_peptide_quantity
-candidate_peptide_quantity=mq_background_peptide_quantity
+#        print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
+
+if quantify_sample == "human":
+    candidate_peptide_quantity=mq_human_peptide_quantity
+elif quantify_sample == "potato":
+    candidate_peptide_quantity=mq_potato_peptide_quantity
+elif quantify_sample == "background":
+    candidate_peptide_quantity=mq_background_peptide_quantity
+
+
 
 candidate_peptide_quantity_sample=[]
 for i in range (0, 12):
@@ -1041,16 +1042,7 @@ for sample_id in range (0, 12):
             feature_auc_per_sample[feature].append([sample_id, considered_intensity])
         total_intensity=total_intensity+considered_intensity
             
-#feature_auc_per_sample=defaultdict(list)    
-#for sample_id in range (0, 12):
-#    feature_list=temp_hold[sample_id].keys()
-#    for feature in feature_list:
-#        considered_intensity = np.mean(temp_hold[sample_id][feature]) # alignment over runs
-#        if considered_intensity>0:
-#            feature_auc_per_sample[feature].append([sample_id, considered_intensity])
-            
-
-
+       
 
 peptide_slopes=[]
 feature_list=list(feature_auc_per_sample.keys())
@@ -1081,8 +1073,10 @@ for i in range (0, len(peptide_slopes)):
     
 plt.hist(slope_dist_mq, bins=10, alpha=0.9, density=True, label='mq', histtype='step') #
 plt.legend(loc='upper right')
-plt.show(block=False)
+#plt.show(block=False)
 ##########################################################################
+
+####################################### Repeat the procedure for OpenMS ###################################
 openMS_background_peptide_quantity=defaultdict(list)    
 openMS_human_peptide_quantity=defaultdict(list)
 openMS_potato_peptide_quantity=defaultdict(list)
@@ -1216,18 +1210,17 @@ for test_index in range (0, 57):
                                 background_detected_dict[peptide_mascot[i][5]]='found'
                                 openMS_background_peptide_quantity[pep_seq_key].append(ftr[2])
                                 
-#                            break
-#
-#                    if found==1:
-#                        break
-        print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
+
+#        print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
 #        print('%d'%len(list(human_detected_dict.keys())))
 #        print(' %g, %g'%((len(list(human_detected_dict.keys()))/158)*100, (len(list(potato_detected_dict.keys()))/115)*100))
-        
-#candidate_peptide_quantity=openMS_human_peptide_quantity
-#candidate_peptide_quantity=openMS_potato_peptide_quantity
-candidate_peptide_quantity=openMS_background_peptide_quantity
 
+if quantify_sample == "human":
+    candidate_peptide_quantity=openMS_human_peptide_quantity
+elif quantify_sample == "potato":
+    candidate_peptide_quantity=openMS_potato_peptide_quantity
+elif quantify_sample == "background":
+    candidate_peptide_quantity=openMS_background_peptide_quantity
 
 candidate_peptide_quantity_sample=[]
 for i in range (0, 12):
@@ -1331,4 +1324,8 @@ for i in range (0, len(peptide_slopes)):
     
 plt.hist(slope_dist_openMS, bins=10, alpha=0.9, density=True, label='openMS', histtype='step') #
 plt.legend(loc='upper right')
-plt.show(block=False)
+#plt.show(block=False)
+#####################################################################################################################
+
+plt.savefig(save_path+'LFQ_plot_'+quantify_sample+'.jpg', dpi=400)
+plt.clf()
