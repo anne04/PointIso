@@ -434,7 +434,7 @@ for test_index in range (0, 57):
                                 peaks_background_peptide_quantity[pep_seq_key].append(ftr[3])
                                 
 
-        print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
+#        print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
 
         
 
@@ -703,7 +703,7 @@ for test_index in range (0, 57):
                                 dino_background_peptide_quantity[pep_seq_key].append(ftr[2])
                                 
 
-        print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
+#        print('%g'%((len(list(background_detected_dict.keys()))/total_background)*100))
 
 if quantify_sample == "human":
     candidate_peptide_quantity=dino_human_peptide_quantity
