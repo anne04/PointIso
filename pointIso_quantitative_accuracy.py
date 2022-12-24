@@ -1331,6 +1331,6 @@ plt.hist(slope_dist_openMS, bins=10, alpha=0.9, density=True, label='openMS', hi
 plt.legend(loc='upper right')
 #plt.show(block=False)
 #####################################################################################################################
-print('Save the combined plot for Label Free Quantification') # 
+print('Save the combined plot for Label Free Quantification') # fig 5.7(b) from thesis
 plt.savefig(save_path+'LFQ_plot_'+quantify_sample+'.jpg', dpi=400)
 plt.clf()
